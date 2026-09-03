@@ -3,22 +3,69 @@
 import type { InstantRules } from "@instantdb/react-native";
 
 const rules = {
-  /**
-   * Welcome to Instant's permission system!
-   * Right now your rules are empty. To start filling them in, check out the docs:
-   * https://www.instantdb.com/docs/permissions
-   *
-   * Here's an example to give you a feel:
-   * posts: {
-   *   allow: {
-   *     view: "true",
-   *     create: "isOwner",
-   *     update: "isOwner",
-   *     delete: "isOwner",
-   *   },
-   *   bind: ["isOwner", "auth.id != null && auth.id == data.ownerId"],
-   * },
-   */
+  notes: {
+    bind: ["isOwner", "auth.id != null && auth.id in data.ref('owner.id')"],
+    allow: {
+      view: "isOwner",
+      create: "isOwner",
+      delete: "isOwner",
+      update: "isOwner",
+    },
+  },
+  $files: {
+    allow: {
+      view: "auth.id != null && data.path.startsWith('narrations/' + auth.id + '/')",
+      create:
+        "auth.id != null && data.path.startsWith('narrations/' + auth.id + '/')",
+      delete:
+        "auth.id != null && data.path.startsWith('narrations/' + auth.id + '/')",
+    },
+  },
+  settings: {
+    bind: ["isOwner", "auth.id != null && auth.id in data.ref('owner.id')"],
+    allow: {
+      view: "isOwner",
+      create: "isOwner",
+      delete: "isOwner",
+      update: "isOwner",
+    },
+  },
+  bookmarks: {
+    bind: ["isOwner", "auth.id != null && auth.id in data.ref('owner.id')"],
+    allow: {
+      view: "isOwner",
+      create: "isOwner",
+      delete: "isOwner",
+      update: "isOwner",
+    },
+  },
+  highlights: {
+    bind: ["isOwner", "auth.id != null && auth.id in data.ref('owner.id')"],
+    allow: {
+      view: "isOwner",
+      create: "isOwner",
+      delete: "isOwner",
+      update: "isOwner",
+    },
+  },
+  narrations: {
+    bind: ["isOwner", "auth.id != null && auth.id in data.ref('owner.id')"],
+    allow: {
+      view: "isOwner",
+      create: "isOwner",
+      delete: "isOwner",
+      update: "isOwner",
+    },
+  },
+  planProgress: {
+    bind: ["isOwner", "auth.id != null && auth.id in data.ref('owner.id')"],
+    allow: {
+      view: "isOwner",
+      create: "isOwner",
+      delete: "isOwner",
+      update: "isOwner",
+    },
+  },
 } satisfies InstantRules;
 
 export default rules;
