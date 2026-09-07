@@ -10,7 +10,9 @@ web-build/
 expo-env.d.ts
 
 # Native (regenerated via `expo prebuild`)
-/ios/
+# /ios/* instead of /ios/ so the Xcode Cloud ci_scripts can be re-included
+/ios/*
+!/ios/ci_scripts/
 /android/
 /Untitled.xcworkspace/
 .kotlin/
