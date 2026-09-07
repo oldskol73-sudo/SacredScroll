@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Pressable, Modal, StyleSheet, ScrollView } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
 import { BOOKS_PICKER, isChapterLoaded, bookLabel, sectionLabel, BookInfo } from "@/constants/bible/books";
@@ -33,12 +34,13 @@ export function BookPicker() {
 
   return (
     <Modal visible={showBookPicker} animationType="fade" onRequestClose={close}>
+      <SafeAreaProvider>
       <SafeAreaView style={[styles.container, { backgroundColor: palette.bg }]} edges={["top", "bottom"]}>
         <View style={[styles.header, { backgroundColor: palette.card, borderBottomColor: palette.divider }]}>
           <View style={styles.headerLeft}>
             {pickerBook ? (
               <Pressable onPress={() => setPickerBook(null)} style={[styles.roundBtn, { backgroundColor: palette.track }]}>
-                <AppText size={16}>←</AppText>
+                <Ionicons name="chevron-back" size={18} color={palette.text} />
               </Pressable>
             ) : null}
             <AppText variant="serifBold" size={19}>
@@ -99,6 +101,7 @@ export function BookPicker() {
           )}
         </ScrollView>
       </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }

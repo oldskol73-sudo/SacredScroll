@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Modal, Pressable, ScrollView, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
 import { CHRONO_PLAN, ChronoDay } from "@/constants/bible/plans";
@@ -10,12 +11,13 @@ type ChronoView = "weekly" | "monthly" | "quarterly" | "yearly";
 
 const VIEW_LABEL_EN: Record<ChronoView, string> = { weekly: "Weekly", monthly: "Monthly", quarterly: "Quarterly", yearly: "Yearly" };
 const VIEW_LABEL_ES: Record<ChronoView, string> = { weekly: "Semanal", monthly: "Mensual", quarterly: "Trimestral", yearly: "Anual" };
+const VIEW_LABEL_HT: Record<ChronoView, string> = { weekly: "Chak Semèn", monthly: "Chak Mwa", quarterly: "Chak Trimès", yearly: "Chak Ane" };
 
 export function ChronoDetailOverlay() {
   const { palette, showChronoDetail, setShowChronoDetail, chronoProgress, goTo, showToast, language, t } = useApp();
   const [view, setView] = useState<ChronoView>("weekly");
   const [expandedWeek, setExpandedWeek] = useState<number | null>(null);
-  const VIEW_LABEL = language === "es" ? VIEW_LABEL_ES : VIEW_LABEL_EN;
+  const VIEW_LABEL = language === "es" ? VIEW_LABEL_ES : language === "ht" ? VIEW_LABEL_HT : VIEW_LABEL_EN;
 
   const total = CHRONO_PLAN.dayList.length;
   const doneCount = chronoProgress.done.size;
@@ -43,13 +45,16 @@ export function ChronoDetailOverlay() {
 
   return (
     <Modal visible={showChronoDetail} animationType="fade" onRequestClose={() => setShowChronoDetail(false)}>
+      <SafeAreaProvider>
       <SafeAreaView style={[styles.container, { backgroundColor: palette.bg }]} edges={["top", "bottom"]}>
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.headerRow}>
-            <Pressable onPress={() => setShowChronoDetail(false)}>
-              <AppText size={20} dim>
-                ←
-              </AppText>
+            <Pressable
+              onPress={() => setShowChronoDetail(false)}
+              style={[styles.backBtn, { backgroundColor: palette.cardAlt }]}
+              hitSlop={8}
+            >
+              <Ionicons name="chevron-back" size={20} color={palette.text} />
             </Pressable>
             <AppText variant="sansExtraBold" size={20}>
               {t("Chronological Reading")}
@@ -208,6 +213,7 @@ export function ChronoDetailOverlay() {
           ) : null}
         </ScrollView>
       </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }
@@ -216,6 +222,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { paddingTop: 16, paddingHorizontal: 20, paddingBottom: 30 },
   headerRow: { flexDirection: "row", alignItems: "center", gap: 14 },
+  backBtn: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
   tabRow: { flexDirection: "row", gap: 6, marginBottom: 16 },
   tab: { flex: 1, borderRadius: 12, paddingVertical: 9, alignItems: "center" },
   yearlyCard: { borderRadius: 20, padding: 24, alignItems: "center" },

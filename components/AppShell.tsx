@@ -23,11 +23,12 @@ import { WeeklyStudyOverlay } from "@/components/overlays/WeeklyStudyOverlay";
 import { SettingsOverlay } from "@/components/overlays/SettingsOverlay";
 import { HowToUseOverlay } from "@/components/overlays/HowToUseOverlay";
 import { AboutOverlay } from "@/components/overlays/AboutOverlay";
+import { AboutTranslationOverlay } from "@/components/overlays/AboutTranslationOverlay";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { MiniPlayer } from "@/components/MiniPlayer";
 
 export function AppShell() {
-  const { isLoading, palette, tab, desk } = useApp();
+  const { isLoading, palette, tab, desk, showSinBattlesMark, setShowSinBattlesMark, showSinBattlesRomans, setShowSinBattlesRomans } = useApp();
 
   if (isLoading) {
     return (
@@ -69,13 +70,15 @@ export function AppShell() {
       <VerseActionBar />
       <NoteComposer />
       <ChronoDetailOverlay />
-      <SinBattlesOverlay />
+      <SinBattlesOverlay source="mark" visible={showSinBattlesMark} onClose={() => setShowSinBattlesMark(false)} />
+      <SinBattlesOverlay source="romans" visible={showSinBattlesRomans} onClose={() => setShowSinBattlesRomans(false)} />
       <PreceptsOverlay />
       <StudyCategoriesOverlay />
       <WeeklyStudyOverlay />
       <SettingsOverlay />
       <HowToUseOverlay />
       <AboutOverlay />
+      <AboutTranslationOverlay />
       <AudioPlayer />
       <Toast />
     </View>

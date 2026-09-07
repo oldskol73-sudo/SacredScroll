@@ -10,14 +10,36 @@ function uniqueKeys(keysList: string[][]) {
 }
 
 export function PlansScreen() {
-  const { palette, chronoProgress, sinProgress, setShowChronoDetail, setShowSinBattles, showToast, t } = useApp();
+  const {
+    palette,
+    chronoProgress,
+    sinProgress,
+    studyCategoryProgress,
+    studyWeeklyProgress,
+    setShowChronoDetail,
+    setShowSinBattlesMark,
+    setShowSinBattlesRomans,
+    setShowStudyCategories,
+    setShowWeeklyStudy,
+    t,
+  } = useApp();
 
   const chronoTotal = CHRONO_PLAN.dayList.length;
   const chronoPct = Math.round((chronoProgress.done.size / chronoTotal) * 100);
-  const sinPct = Math.round((sinProgress.done.size / SIN_BATTLES.length) * 100);
+
+  const markBattles = SIN_BATTLES.filter((s) => s.source === "mark");
+  const romansBattles = SIN_BATTLES.filter((s) => s.source === "romans");
+  const markDone = markBattles.filter((s) => sinProgress.done.has(s.key)).length;
+  const romansDone = romansBattles.filter((s) => sinProgress.done.has(s.key)).length;
+  const markPct = Math.round((markDone / markBattles.length) * 100);
+  const romansPct = Math.round((romansDone / romansBattles.length) * 100);
 
   const categoryKeys = uniqueKeys(STUDY_PLAN_CATEGORIES.map((c) => c.topicKeys));
   const weeklyKeys = uniqueKeys(WEEKLY_STUDY_PLAN.flatMap((p) => p.weeks.map((w) => w.topicKeys)));
+  const categoryDone = categoryKeys.filter((k) => studyCategoryProgress.done.has(k)).length;
+  const weeklyDone = weeklyKeys.filter((k) => studyWeeklyProgress.done.has(k)).length;
+  const categoryPct = Math.round((categoryDone / categoryKeys.length) * 100);
+  const weeklyPct = Math.round((weeklyDone / weeklyKeys.length) * 100);
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
@@ -34,46 +56,55 @@ export function PlansScreen() {
         </AppText>
       </Pressable>
 
-      <Pressable onPress={() => setShowSinBattles(true)} style={[styles.card, { backgroundColor: palette.card }]}>
+      <Pressable onPress={() => setShowSinBattlesMark(true)} style={[styles.card, { backgroundColor: palette.card }]}>
         <AppText variant="sansExtraBold" size={11} color={palette.accent} style={{ letterSpacing: 1, marginBottom: 6 }}>
           {t("TOPICAL STUDY")}
         </AppText>
         <AppText variant="sansExtraBold" size={18} style={{ marginBottom: 10 }}>
-          {t("Sin-Specific Battles")}
+          {t("Sin Battles: Mark 7")}
         </AppText>
-        <ProgressBar pct={sinPct} />
+        <ProgressBar pct={markPct} />
         <AppText variant="sansBold" size={13} dim style={{ marginTop: 10 }}>
-          {sinProgress.done.size} {t("of")} {SIN_BATTLES.length} {t("sins from Mark 7:21-23")}
+          {markDone} {t("of")} {markBattles.length} {t("sins")}
         </AppText>
       </Pressable>
 
-      <Pressable
-        onPress={() => showToast(t("Coming soon"))}
-        style={[styles.card, { backgroundColor: palette.card, opacity: 0.6 }]}
-      >
+      <Pressable onPress={() => setShowSinBattlesRomans(true)} style={[styles.card, { backgroundColor: palette.card }]}>
+        <AppText variant="sansExtraBold" size={11} color={palette.accent} style={{ letterSpacing: 1, marginBottom: 6 }}>
+          {t("TOPICAL STUDY")}
+        </AppText>
+        <AppText variant="sansExtraBold" size={18} style={{ marginBottom: 10 }}>
+          {t("Sin Battles: Romans 1")}
+        </AppText>
+        <ProgressBar pct={romansPct} />
+        <AppText variant="sansBold" size={13} dim style={{ marginTop: 10 }}>
+          {romansDone} {t("of")} {romansBattles.length} {t("sins")}
+        </AppText>
+      </Pressable>
+
+      <Pressable onPress={() => setShowStudyCategories(true)} style={[styles.card, { backgroundColor: palette.card }]}>
         <AppText variant="sansExtraBold" size={11} color={palette.accent} style={{ letterSpacing: 1, marginBottom: 6 }}>
           {t("12 CATEGORIES")}
         </AppText>
         <AppText variant="sansExtraBold" size={18} style={{ marginBottom: 10 }}>
           {t("Study by Category")}
         </AppText>
-        <AppText variant="sansBold" size={13} dim>
-          {t("Coming soon")} · {categoryKeys.length} {t("topics")}
+        <ProgressBar pct={categoryPct} />
+        <AppText variant="sansBold" size={13} dim style={{ marginTop: 10 }}>
+          {categoryDone} {t("of")} {categoryKeys.length} {t("topics")}
         </AppText>
       </Pressable>
 
-      <Pressable
-        onPress={() => showToast(t("Coming soon"))}
-        style={[styles.card, { backgroundColor: palette.card, opacity: 0.6 }]}
-      >
+      <Pressable onPress={() => setShowWeeklyStudy(true)} style={[styles.card, { backgroundColor: palette.card }]}>
         <AppText variant="sansExtraBold" size={11} color={palette.accent} style={{ letterSpacing: 1, marginBottom: 6 }}>
           {WEEKLY_STUDY_PLAN_TOTAL_WEEKS} {t("WEEK PLAN")}
         </AppText>
         <AppText variant="sansExtraBold" size={18} style={{ marginBottom: 10 }}>
           {t("Weekly Study Plan")}
         </AppText>
-        <AppText variant="sansBold" size={13} dim>
-          {t("Coming soon")} · {weeklyKeys.length} {t("topics")}
+        <ProgressBar pct={weeklyPct} />
+        <AppText variant="sansBold" size={13} dim style={{ marginTop: 10 }}>
+          {weeklyDone} {t("of")} {weeklyKeys.length} {t("topics")}
         </AppText>
       </Pressable>
     </ScrollView>

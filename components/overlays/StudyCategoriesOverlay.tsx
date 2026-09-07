@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Modal, Pressable, ScrollView, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
 import { StudyTopicRow } from "@/components/StudyTopicRow";
@@ -17,13 +18,16 @@ export function StudyCategoriesOverlay() {
 
   return (
     <Modal visible={showStudyCategories} animationType="fade" onRequestClose={() => setShowStudyCategories(false)}>
+      <SafeAreaProvider>
       <SafeAreaView style={[styles.container, { backgroundColor: palette.bg }]} edges={["top", "bottom"]}>
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.headerRow}>
-            <Pressable onPress={() => setShowStudyCategories(false)}>
-              <AppText size={20} dim>
-                ←
-              </AppText>
+            <Pressable
+              onPress={() => setShowStudyCategories(false)}
+              style={[styles.backBtn, { backgroundColor: palette.cardAlt }]}
+              hitSlop={8}
+            >
+              <Ionicons name="chevron-back" size={20} color={palette.text} />
             </Pressable>
             <AppText variant="sansExtraBold" size={20}>
               {t("Study by Category")}
@@ -82,6 +86,7 @@ export function StudyCategoriesOverlay() {
           </View>
         </ScrollView>
       </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }
@@ -90,6 +95,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { paddingTop: 16, paddingHorizontal: 20, paddingBottom: 30 },
   headerRow: { flexDirection: "row", alignItems: "center", gap: 14 },
+  backBtn: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
   card: { borderRadius: 14, padding: 16, gap: 10 },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   track: { height: 5, borderRadius: 3, overflow: "hidden" },

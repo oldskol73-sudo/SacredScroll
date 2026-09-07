@@ -16,7 +16,8 @@ function greeting(t: (s: string) => string) {
 }
 
 function dateLabel(language: string) {
-  return new Date().toLocaleDateString(language === "es" ? "es" : undefined, {
+  const locale = language === "es" ? "es" : language === "ht" ? "ht" : undefined;
+  return new Date().toLocaleDateString(locale, {
     weekday: "long",
     month: "long",
     day: "numeric",

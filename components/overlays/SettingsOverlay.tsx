@@ -1,7 +1,9 @@
 import React from "react";
-import { View, Modal, Pressable, ScrollView, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { View, Modal, Pressable, ScrollView, StyleSheet, Linking } from "react-native";
+import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
+import * as StoreReview from "expo-store-review";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
 import { displayRef } from "@/constants/bible/books";
@@ -24,6 +26,7 @@ export function SettingsOverlay() {
     showToast,
     showAbout,
     setShowAbout,
+    setShowHowToUse,
     language,
     setLanguage,
     t,
@@ -54,19 +57,43 @@ export function SettingsOverlay() {
     setReaderFontSize(READER_FONT_SIZES[(idx + 1) % READER_FONT_SIZES.length]);
   }
 
+  function onFeedback() {
+    Linking.openURL("mailto:publishing@twelvescentspub.com");
+  }
+
+  async function onRateUs() {
+    if (await StoreReview.hasAction()) {
+      StoreReview.requestReview();
+    } else {
+      showToast(t("Coming soon"));
+    }
+  }
+
+  function onMoreApp() {
+    Linking.openURL("https://www.twelvescentspub.com");
+  }
+
+  function onHelp() {
+    setShowSettings(false);
+    setShowHowToUse(true);
+  }
+
   return (
     <Modal
       visible={showSettings && !showAbout}
       animationType="fade"
       onRequestClose={() => setShowSettings(false)}
     >
+      <SafeAreaProvider>
       <SafeAreaView style={[styles.container, { backgroundColor: palette.bg }]} edges={["top", "bottom"]}>
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.headerRow}>
-            <Pressable onPress={() => setShowSettings(false)}>
-              <AppText size={20} dim>
-                ←
-              </AppText>
+            <Pressable
+              onPress={() => setShowSettings(false)}
+              style={[styles.backBtn, { backgroundColor: palette.cardAlt }]}
+              hitSlop={8}
+            >
+              <Ionicons name="chevron-back" size={20} color={palette.text} />
             </Pressable>
             <AppText variant="sansExtraBold" size={20}>
               {t("Settings")}
@@ -89,6 +116,14 @@ export function SettingsOverlay() {
             >
               <AppText variant="sansBold" size={13} color={language === "es" ? "#fff" : palette.text}>
                 Español
+              </AppText>
+            </Pressable>
+            <Pressable
+              onPress={() => setLanguage("ht")}
+              style={[styles.langBtn, { backgroundColor: language === "ht" ? palette.accent : palette.cardAlt }]}
+            >
+              <AppText variant="sansBold" size={13} color={language === "ht" ? "#fff" : palette.text}>
+                Kreyòl
               </AppText>
             </Pressable>
           </View>
@@ -181,7 +216,7 @@ export function SettingsOverlay() {
 
           <SectionLabel>{t("About App")}</SectionLabel>
           <View style={[styles.card, { backgroundColor: palette.card, marginBottom: 18 }]}>
-            <Pressable onPress={() => showToast(t("Coming soon"))} style={[styles.optionRow, { borderBottomColor: palette.divider }]}>
+            <Pressable onPress={onFeedback} style={[styles.optionRow, { borderBottomColor: palette.divider }]}>
               <AppText size={15}>{t("Feedback")}</AppText>
               <AppText dim>›</AppText>
             </Pressable>
@@ -189,22 +224,23 @@ export function SettingsOverlay() {
               <AppText size={15}>{t("About Us")}</AppText>
               <AppText dim>›</AppText>
             </Pressable>
-            <Pressable onPress={() => showToast(t("Coming soon"))} style={styles.optionRow}>
+            <Pressable onPress={onRateUs} style={styles.optionRow}>
               <AppText size={15}>{t("Rate Us")}</AppText>
             </Pressable>
           </View>
 
           <SectionLabel>{t("Support")}</SectionLabel>
           <View style={[styles.card, { backgroundColor: palette.card }]}>
-            <Pressable onPress={() => showToast(t("Coming soon"))} style={[styles.optionRow, { borderBottomColor: palette.divider }]}>
-              <AppText size={15}>{t("More App")}</AppText>
+            <Pressable onPress={onMoreApp} style={[styles.optionRow, { borderBottomColor: palette.divider }]}>
+              <AppText size={15}>{t("Explore the Collection")}</AppText>
             </Pressable>
-            <Pressable onPress={() => showToast(t("Coming soon"))} style={styles.optionRow}>
+            <Pressable onPress={onHelp} style={styles.optionRow}>
               <AppText size={15}>{t("Help")}</AppText>
             </Pressable>
           </View>
         </ScrollView>
       </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }
@@ -232,8 +268,9 @@ function Switch({ value, onChange }: { value: boolean; onChange: () => void }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { paddingTop: 16, paddingHorizontal: 20, paddingBottom: 40 },
-  headerRow: { flexDirection: "row", alignItems: "center", gap: 14, marginBottom: 10 },
+  content: { paddingTop: 28, paddingHorizontal: 20, paddingBottom: 40 },
+  headerRow: { flexDirection: "row", alignItems: "center", gap: 14, marginBottom: 18 },
+  backBtn: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
   card: { borderRadius: 14, padding: 16 },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   optionRow: {

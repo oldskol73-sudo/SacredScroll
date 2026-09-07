@@ -5,7 +5,7 @@ import { useApp, TabKey } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
 
 const LOGO_BADGE = require("@/assets/images/bible/logo-badge.png");
-const UPGRADE_EMBLEM = require("@/assets/images/bible/upgrade-emblem.png");
+const UPGRADE_EMBLEM = require("@/assets/images/bible/Publishing-profie-pic.png");
 
 type NavKey = TabKey | "settings" | "precepts" | "desk" | "howToUse";
 
@@ -33,8 +33,8 @@ export function Drawer() {
     setShowSettings,
     setShowPrecepts,
     setShowHowToUse,
+    setShowAboutTranslation,
     goTo,
-    showToast,
     t,
   } = useApp();
 
@@ -91,23 +91,7 @@ export function Drawer() {
               })}
             </View>
 
-            <View style={[styles.upgradeCard, { backgroundColor: palette.cardAlt, borderColor: palette.divider }]}>
-              <Image source={UPGRADE_EMBLEM} style={styles.upgradeEmblem} resizeMode="contain" />
-              <AppText variant="sansExtraBold" size={14}>
-                {t("Upgrade to Premium")}
-              </AppText>
-              <AppText size={11.5} dim style={{ marginTop: 4, lineHeight: 15, textAlign: "center" }}>
-                {t("Unlock commentary, study tools, and more.")}
-              </AppText>
-              <Pressable
-                onPress={() => showToast(t("Coming soon"))}
-                style={[styles.upgradeBtn, { backgroundColor: palette.accent }]}
-              >
-                <AppText variant="sansExtraBold" size={12} color="#fff">
-                  {t("Upgrade Now")}
-                </AppText>
-              </Pressable>
-            </View>
+            <Image source={UPGRADE_EMBLEM} style={styles.upgradeImage} resizeMode="cover" />
 
             <Pressable onPress={onDailyVerse} style={[styles.verseCard, { borderColor: palette.divider }]}>
               <AppText variant="sansExtraBold" size={10} color={palette.accent} style={{ letterSpacing: 1 }}>
@@ -121,7 +105,7 @@ export function Drawer() {
               </AppText>
             </Pressable>
 
-            <Pressable onPress={() => showToast(t("Coming soon"))} style={styles.footer}>
+            <Pressable onPress={() => setShowAboutTranslation(true)} style={styles.footer}>
               <AppText variant="sansExtraBold" size={11.5} color={palette.accent}>
                 {t("KJV 1611 with Apocrypha")}
               </AppText>
@@ -149,15 +133,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   heroImage: {
-    width: "100%",
-    maxWidth: 170,
-    height: 60,
+    // logo-badge.png is 600x825 (portrait); size the box to match its real
+    // aspect ratio so "contain" doesn't shrink it to fit a short wide box.
+    width: 70,
+    height: 96,
     borderRadius: 8,
   },
-  upgradeEmblem: {
-    width: 46,
-    height: 46,
-    marginBottom: 4,
+  upgradeImage: {
+    marginHorizontal: 14,
+    marginTop: 14,
+    width: 250 - 28, // panel width (250) minus the 14px margin on each side
+    height: 250 - 28,
+    borderRadius: 14,
   },
   navList: {
     padding: 10,
@@ -171,21 +158,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 10,
     borderLeftWidth: 3,
-  },
-  upgradeCard: {
-    margin: 14,
-    marginTop: 14,
-    padding: 16,
-    borderRadius: 14,
-    borderWidth: 1,
-    alignItems: "center",
-  },
-  upgradeBtn: {
-    marginTop: 12,
-    width: "100%",
-    borderRadius: 10,
-    paddingVertical: 9,
-    alignItems: "center",
   },
   verseCard: {
     margin: 14,

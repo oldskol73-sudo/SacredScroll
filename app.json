@@ -4,7 +4,7 @@
     "slug": "tsp-bible-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/bible/icon.png",
     "scheme": "expotemplate",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -12,7 +12,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.twelvescentspublishing.sacredscroll",
       "infoPlist": {
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": ["audio"],
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -21,10 +22,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "permissions": [
-        "android.permission.RECORD_AUDIO",
-        "android.permission.MODIFY_AUDIO_SETTINGS"
-      ],
+      "permissions": ["android.permission.MODIFY_AUDIO_SETTINGS"],
       "package": "com.twelvescentspublishing.sacredscroll"
     },
     "web": {
@@ -40,10 +38,16 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#F5ECD6"
         }
       ],
-      "expo-audio"
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

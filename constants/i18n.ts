@@ -1,4 +1,4 @@
-export type Language = "en" | "es";
+export type Language = "en" | "es" | "ht";
 
 // Keyed by the exact English source string used in the UI. t(s) looks up the
 // current language's translation, falling back to the English input itself
@@ -15,6 +15,7 @@ const ES: Record<string, string> = {
   Precepts: "Preceptos",
   "How to Use": "Cómo Usar",
   Settings: "Configuración",
+  Menu: "Menú",
   "Reading Plans": "Planes de Lectura",
   "Upgrade to Premium": "Mejorar a Premium",
   "Unlock commentary, study tools, and more.": "Desbloquea comentarios, herramientas de estudio y más.",
@@ -24,6 +25,7 @@ const ES: Record<string, string> = {
     "Lámpara es a mis pies tu palabra, y lumbrera á mi camino.",
   "KJV 1611 with Apocrypha": "Reina-Valera 1909 con Apócrifos",
   "Coming soon": "Próximamente",
+  "Coming Soon": "Próximamente",
 
   // Header / reader
   "Continue Reading": "Continuar Leyendo",
@@ -48,14 +50,14 @@ const ES: Record<string, string> = {
   "6 Books Available": "6 Libros Disponibles",
   "Open Collection": "Abrir Colección",
   "Discover Something New": "Descubre Algo Nuevo",
-  "Psalms & Proverbs Study Guide": "Guía de Estudio de Salmos y Proverbios",
-  "A companion volume for daily reflection, newly added to the catalog.":
-    "Un volumen complementario para la reflexión diaria, recién añadido al catálogo.",
+  "Sin-Specific Guide": "Guía Contra Pecados Específicos",
+  "Thirty-six sins named in Mark 7 and Romans 1, each paired with scripture precepts to overcome it.":
+    "Treinta y seis pecados nombrados en Marcos 7 y Romanos 1, cada uno con preceptos bíblicos para vencerlo.",
   "Learn More ›": "Más Información ›",
   ADVERTISEMENT: "PUBLICIDAD",
-  "Face Jerusalem — find true north to the Holy City": "Face Jerusalem — encuentra el norte verdadero hacia la Ciudad Santa",
+  "Face Jerusalem — Always know the direction of your homeland": "Face Jerusalem — Conoce siempre la dirección de tu patria",
   "Get App ›": "Obtener App ›",
-  "Enter Library →": "Entrar a la Biblioteca →",
+  "Enter Library": "Entrar a la Biblioteca",
 
   // Today screen
   "VERSE OF THE DAY": "VERSÍCULO DEL DÍA",
@@ -73,7 +75,7 @@ const ES: Record<string, string> = {
   // Read screen empty state
   "isn't loaded in this build yet.": "aún no está disponible en esta versión.",
   "Try Genesis 1–2, Psalm 23, or John 3.": "Prueba Génesis 1–2, Salmo 23, o Juan 3.",
-  "This chapter's Spanish translation isn't ready yet — showing the English text.":
+  "This chapter's translation isn't ready yet — showing the English text.":
     "La traducción al español de este capítulo aún no está lista — mostrando el texto en inglés.",
 
   // Plans
@@ -82,7 +84,11 @@ const ES: Record<string, string> = {
   "days": "días",
   "TOPICAL STUDY": "ESTUDIO TEMÁTICO",
   "Sin-Specific Battles": "Batallas Contra Pecados Específicos",
+  "Sin Battles: Mark 7": "Batallas Contra Pecados: Marcos 7",
+  "Sin Battles: Romans 1": "Batallas Contra Pecados: Romanos 1",
   "sins from Mark 7:21-23": "pecados de Marcos 7:21-23",
+  "sins from Mark 7 & Romans 1": "pecados de Marcos 7 y Romanos 1",
+  "sins": "pecados",
   "12 CATEGORIES": "12 CATEGORÍAS",
   "Study by Category": "Estudio por Categoría",
   "topics": "temas",
@@ -155,8 +161,21 @@ const ES: Record<string, string> = {
   "About Us": "Acerca de Nosotros",
   "Rate Us": "Califícanos",
   Support: "Soporte",
-  "More App": "Más Apps",
+  "Explore the Collection": "Explorar la Colección",
   Help: "Ayuda",
+
+  // About This Translation
+  "About This Translation": "Acerca de Esta Traducción",
+  "The King James Version (1611)": "La Versión Rey Jacobo (1611)",
+  "Sacred Scroll's Bible text is the King James Version, first published in 1611 under King James I of England. Commissioned from the Hebrew and Greek source texts by a team of nearly fifty scholars, it remains one of the most widely read and quoted English Bible translations in history.":
+    "El texto bíblico de Sacred Scroll es la Versión Rey Jacobo, publicada por primera vez en 1611 bajo el rey Jacobo I de Inglaterra. Encargada a partir de los textos originales en hebreo y griego por un equipo de casi cincuenta eruditos, sigue siendo una de las traducciones bíblicas en inglés más leídas y citadas de la historia.",
+  "Its language has shaped English literature and worship for over four centuries, and it is the translation this app is built around, cover to cover.":
+    "Su lenguaje ha marcado la literatura y la adoración en inglés por más de cuatro siglos, y es la traducción sobre la cual está construida esta aplicación, de principio a fin.",
+  "The Apocrypha": "Los Apócrifos",
+  "Alongside the 66 books of the standard Protestant canon, Sacred Scroll includes the Apocrypha — a collection of historical, wisdom, and devotional books that appeared in the original 1611 King James Bible.":
+    "Además de los 66 libros del canon protestante estándar, Sacred Scroll incluye los Apócrifos — una colección de libros históricos, de sabiduría y devocionales que aparecían en la Biblia Rey Jacobo original de 1611.",
+  "These books were part of English Bibles for centuries before later editions removed them. We include them here as they were originally printed, for readers who want the complete 1611 text.":
+    "Estos libros formaron parte de las Biblias en inglés durante siglos antes de que ediciones posteriores los eliminaran. Los incluimos aquí tal como se imprimieron originalmente, para los lectores que desean el texto completo de 1611.",
 
   // Chrono detail
   "The whole Bible in one year, ordered by when events happened":
@@ -175,13 +194,24 @@ const ES: Record<string, string> = {
   Day: "Día",
 
   // Sin battles
+  "MARK 7:21-23": "MARCOS 7:21-23",
   "Mark 7:21-23 — for out of the heart proceed evil thoughts, adulteries, fornications, murders, thefts, covetousness, wickedness, deceit, lasciviousness, an evil eye, blasphemy, pride, foolishness. For each, at least three precepts to overcome.":
     "Marcos 7:21-23 — porque de dentro, del corazón de los hombres, salen los malos pensamientos, los adulterios, las fornicaciones, los homicidios, los hurtos, las avaricias, las maldades, el engaño, la lascivia, el ojo maligno, la blasfemia, la soberbia, la insensatez. Para cada uno, al menos tres preceptos para vencerlo.",
+  "ROMANS 1:29-31": "ROMANOS 1:29-31",
+  "Romans 1:29-31 — being filled with all unrighteousness, fornication, wickedness, covetousness, maliciousness; full of envy, murder, debate, deceit, malignity; whisperers, backbiters, haters of God, despiteful, proud, boasters, inventors of evil things, disobedient to parents, without understanding, covenantbreakers, without natural affection, implacable, unmerciful. For each, at least three precepts to overcome.":
+    "Romanos 1:29-31 — estando atestados de toda injusticia, fornicación, malicia, avaricia, maldad; llenos de envidia, homicidios, contiendas, engaños, malignidades; murmuradores, detractores, aborrecedores de Dios, injuriosos, soberbios, vanagloriosos, inventores de males, desobedientes á los padres, necios, desleales, sin afecto natural, implacables, sin misericordia. Para cada uno, al menos tres preceptos para vencerlo.",
 
   // Precepts
   "Topical scripture chains. Each topic's key verse is highlighted in the Read tab with a ¹ footnote linking the rest of the chain.":
     "Cadenas de escritura por tema. El versículo clave de cada tema se resalta en la pestaña Leer con una nota ¹ que enlaza el resto de la cadena.",
   "View in Reader": "Ver en el Lector",
+  "A–Z TOPICS": "TEMAS A–Z",
+  "FEATURED TOPICS": "TEMAS DESTACADOS",
+  "Hand-picked topics to start with, grouped by theme.": "Temas seleccionados para comenzar, agrupados por tema.",
+  "Relationships & Family": "Relaciones y Familia",
+  "Spiritual Life": "Vida Espiritual",
+  "Bible Study": "Estudio Bíblico",
+  "Identity": "Identidad",
 
   // Study categories / weekly study
   "Topics grouped into 12 life-topic categories. Check off each topic as you study it.":
@@ -271,6 +301,304 @@ const ES: Record<string, string> = {
   "Stop narration": "Detener narración",
 };
 
+// Haitian Creole (Kreyòl Ayisyen). Same keying convention as ES above.
+const HT: Record<string, string> = {
+  // Nav / drawer
+  "Publisher's Desk": "Biwo Editè a",
+  Today: "Jodi a",
+  Read: "Li",
+  Search: "Chèche",
+  Plans: "Plan",
+  Library: "Bibliyotèk",
+  Precepts: "Prensip",
+  "How to Use": "Kijan pou Itilize",
+  Settings: "Paramèt",
+  Menu: "Meni",
+  "Reading Plans": "Plan Lekti",
+  "Upgrade to Premium": "Pase nan Premium",
+  "Unlock commentary, study tools, and more.": "Debloke kòmantè, zouti etid, ak plis ankò.",
+  "Upgrade Now": "Mete Nivo Kounye a",
+  "✧ DAILY VERSE ✧": "✧ VÈSÈ CHAK JOU ✧",
+  "Thy word is a lamp unto my feet, and a light unto my path.":
+    "Pawòl ou se yon lanp pou pye mwen, se yon limyè nan chemen mwen.",
+  "KJV 1611 with Apocrypha": "Bib La (1985) ak Apokrif",
+  "Coming soon": "Talè konsa",
+  "Coming Soon": "Talè Konsa",
+
+  // Header / reader
+  "Continue Reading": "Kontinye Li",
+  "Full text coming soon": "Tèks konplè ap vini talè",
+  "Chapter text coming soon": "Tèks chapit la ap vini talè",
+
+  // Desk screen
+  "Good morning": "Bonjou",
+  "Good afternoon": "Bon apremidi",
+  "Good evening": "Bonswa",
+  "CONTINUE READING": "KONTINYE LI",
+  Bookmarks: "Siyè",
+  Notes: "Nòt",
+  "Today's Scripture": "Ekriti Jodi a",
+  "Read Full Chapter": "Li Tout Chapit la",
+  Bookmark: "Anrejistre",
+  Share: "Pataje",
+  "Featured Collection": "Koleksyon Vedèt",
+  "Mighty Men of Valor": "Gwo Gason Vanyan",
+  "Twelve portraits of courage and faith, from Gideon's three hundred to David's mighty men.":
+    "Douz pòtrè kouraj ak lafwa, depi twasan mesye Jedeyon yo rive nan vanyan gason David yo.",
+  "6 Books Available": "6 Liv Disponib",
+  "Open Collection": "Ouvri Koleksyon an",
+  "Discover Something New": "Dekouvri Yon Bagay Nouvo",
+  "Sin-Specific Guide": "Gid pou Peche Espesifik",
+  "Thirty-six sins named in Mark 7 and Romans 1, each paired with scripture precepts to overcome it.":
+    "Trannsis peche ki nonmen nan Mak 7 ak Ròm 1, chak youn make ak prensip biblik pou simonte li.",
+  "Learn More ›": "Aprann Plis ›",
+  ADVERTISEMENT: "REKLAM",
+  "Face Jerusalem — Always know the direction of your homeland": "Face Jerusalem — Toujou konnen direksyon peyi natal ou",
+  "Get App ›": "Jwenn App la ›",
+  "Enter Library": "Antre nan Bibliyotèk la",
+
+  // Today screen
+  "VERSE OF THE DAY": "VÈSÈ JOU A",
+  "Read in context →": "Li nan kontèks →",
+
+  // Search
+  "Search the KJV, notes…": "Chèche nan Bib la, nòt…",
+  "Full Bible": "Tout Bib la",
+  Apocrypha: "Apokrif",
+  "Current Book": "Liv Aktyèl la",
+  "All Books": "Tout Liv",
+  "Enter a text to search": "Antre yon tèks pou chèche",
+  "No results for": "Pa gen rezilta pou",
+
+  // Read screen empty state
+  "isn't loaded in this build yet.": "poko chaje nan vèsyon sa a.",
+  "Try Genesis 1–2, Psalm 23, or John 3.": "Eseye Jenèz 1–2, Sòm 23, oswa Jan 3.",
+  "This chapter's translation isn't ready yet — showing the English text.":
+    "Tradiksyon chapit sa a poko pare — n'ap montre tèks angle a.",
+
+  // Plans
+  "1-YEAR PLAN": "PLAN 1 AN",
+  "Chronological Reading": "Lekti Kwonolojik",
+  days: "jou",
+  "TOPICAL STUDY": "ETID TEMATIK",
+  "Sin-Specific Battles": "Batay Kont Peche Espesifik",
+  "Sin Battles: Mark 7": "Batay Kont Peche: Mak 7",
+  "Sin Battles: Romans 1": "Batay Kont Peche: Ròm 1",
+  "sins from Mark 7:21-23": "peche ki nan Mak 7:21-23",
+  "sins from Mark 7 & Romans 1": "peche ki nan Mak 7 ak Ròm 1",
+  sins: "peche",
+  "12 CATEGORIES": "12 KATEGORI",
+  "Study by Category": "Etid pa Kategori",
+  topics: "sijè",
+  "WEEK PLAN": "PLAN SEMÈN",
+  "Weekly Study Plan": "Plan Etid Chak Semèn",
+
+  // Library
+  "No bookmarks yet. Tap a verse in Read to save one.": "Poko gen siyè. Peze yon vèsè nan Li pou anrejistre yonn.",
+  "No highlights yet.": "Poko gen siyalman.",
+  "No notes yet.": "Poko gen nòt.",
+  "+ New Note": "+ Nouvo Nòt",
+  "Tap a verse, then Note to add one": "Peze yon vèsè, epi Nòt pou ajoute yonn",
+  Highlights: "Siyalman",
+
+  // Book picker
+  Books: "Liv",
+  "Old Testament": "Ansyen Testaman",
+  "New Testament": "Nouvo Testaman",
+
+  // Note composer
+  "Note on": "Nòt sou",
+  "Write your thoughts…": "Ekri panse ou…",
+  "Save Note": "Anrejistre Nòt",
+  "Note saved": "Nòt anrejistre",
+
+  // Verse action bar
+  "Close ✕": "Fèmen ✕",
+  Copy: "Kopye",
+  Save: "Anrejistre",
+  Note: "Nòt",
+  "Copied to clipboard": "Kopye nan papye clip",
+  "KJV Narration": "Narasyon Biblik",
+  "Highlight saved": "Siyalman anrejistre",
+  "Highlight cleared": "Siyalman efase",
+  "Bookmark removed": "Siyè retire",
+  "Bookmark saved": "Siyè anrejistre",
+
+  // Settings
+  Notification: "Notifikasyon",
+  Notifications: "Notifikasyon",
+  "Reading Atmosphere": "Anbyans Lekti",
+  ACTIVE: "AKTIF",
+  "Royal Parchment": "Parchemen Wayal",
+  "Temple Stone": "Wòch Tanp",
+  "Midnight Scroll": "Woulo Minwi",
+  "Luxury • Warm • Premium • Timeless": "Liks • Cho • Premium • San Laj",
+  "Modern • Clean • Biblical • Sophisticated": "Modèn • Pwòp • Biblik • Rafine",
+  "Cinematic • Focused • Premium • Easy on Eyes": "Sinematik • Konsantre • Premium • Fasil pou Je",
+  "Warm daylight reading inspired by handcrafted heirloom Bibles.":
+    "Lekti cho lajounen enspire pa ansyen Bib fèt ak men.",
+  "Balanced study environment inspired by Jerusalem's timeless architecture.":
+    "Anbyans etid ekilibre enspire pa achitekti Jerizalèm ki dire tout tan.",
+  "An immersive candlelit experience designed for evening Scripture reading.":
+    "Yon eksperyans limyè bouji fèt pou lekti Ekriti Sentespri nan aswè.",
+  Font: "Polis",
+  Language: "Lang",
+  English: "Anglè",
+  Español: "Panyòl",
+  "Reader Font Size": "Gwosè Font Lektè",
+  "Audio Narration": "Narasyon Odyo",
+  "Uploaded:": "Telechaje:",
+  "No custom narration uploaded": "Pa gen narasyon pèsonalize telechaje",
+  "Upload Recording": "Telechaje Anrejistreman",
+  Remove: "Retire",
+  "Narration uploaded": "Narasyon telechaje",
+  "Narration removed": "Narasyon retire",
+  "Upload failed — try again": "Telechajman echwe — eseye ankò",
+  "About App": "Sou App la",
+  Feedback: "Kòmantè",
+  "About Us": "Sou Nou",
+  "Rate Us": "Evalye Nou",
+  Support: "Sipò",
+  "Explore the Collection": "Eksplore Koleksyon an",
+  Help: "Èd",
+
+  // About This Translation
+  "About This Translation": "Sou Tradiksyon Sa a",
+  "The King James Version (1611)": "Vèsyon Wa Jak la (1611)",
+  "Sacred Scroll's Bible text is the King James Version, first published in 1611 under King James I of England. Commissioned from the Hebrew and Greek source texts by a team of nearly fifty scholars, it remains one of the most widely read and quoted English Bible translations in history.":
+    "Tèks Bib Sacred Scroll la se Vèsyon Wa Jak la, ki te pibliye premye fwa an 1611 anba Wa Jak Premye peyi Angletè. Yon ekip prèske senkant save te fè tradiksyon an dirèkteman soti nan tèks ebre ak grèk yo. Li rete yonn nan tradiksyon Bib angle ki pi li ak ki pi site nan tout istwa.",
+  "Its language has shaped English literature and worship for over four centuries, and it is the translation this app is built around, cover to cover.":
+    "Langaj li a te fòme literati ak adorasyon angle pandan plis pase kat syèk, epi se tradiksyon sa a ki fè fondasyon app sa a, depi premye paj rive nan dènye paj.",
+  "The Apocrypha": "Apokrif yo",
+  "Alongside the 66 books of the standard Protestant canon, Sacred Scroll includes the Apocrypha — a collection of historical, wisdom, and devotional books that appeared in the original 1611 King James Bible.":
+    "Anplis 66 liv kanon Pwotestan estanda a, Sacred Scroll enkli Apokrif yo — yon koleksyon liv istorik, liv sajès, ak liv devosyon ki te parèt nan Bib Wa Jak orijinal 1611 la.",
+  "These books were part of English Bibles for centuries before later editions removed them. We include them here as they were originally printed, for readers who want the complete 1611 text.":
+    "Liv sa yo te fè pati Bib angle yo pandan plizyè syèk anvan edisyon pita retire yo. Nou enkli yo isit la jan yo te enprime orijinèlman, pou lektè ki vle tèks konplè 1611 la.",
+
+  // Chrono detail
+  "The whole Bible in one year, ordered by when events happened":
+    "Tout Bib la nan yon sèl ane, aranje dapre lè evènman yo te rive",
+  of: "sou",
+  "days complete.": "jou fin fèt.",
+  Weekly: "Chak Semèn",
+  Monthly: "Chak Mwa",
+  Quarterly: "Chak Trimès",
+  Yearly: "Chak Ane",
+  "YEAR PROGRESS": "PWOGRE ANE A",
+  "days read": "jou li",
+  Quarter: "Trimès",
+  Days: "Jou",
+  Week: "Semèn",
+  Day: "Jou",
+
+  // Sin battles
+  "MARK 7:21-23": "MAK 7:21-23",
+  "Mark 7:21-23 — for out of the heart proceed evil thoughts, adulteries, fornications, murders, thefts, covetousness, wickedness, deceit, lasciviousness, an evil eye, blasphemy, pride, foolishness. For each, at least three precepts to overcome.":
+    "Mak 7:21-23 — paske se nan kè moun move panse soti: adiltè, fònikasyon, touye moun, vòl, konvwatiz, mechanste, twonpri, imoralite, move je, blasfèm, ògèy, foli. Pou chak youn, omwen twa prensip pou simonte li.",
+  "ROMANS 1:29-31": "RÒM 1:29-31",
+  "Romans 1:29-31 — being filled with all unrighteousness, fornication, wickedness, covetousness, maliciousness; full of envy, murder, debate, deceit, malignity; whisperers, backbiters, haters of God, despiteful, proud, boasters, inventors of evil things, disobedient to parents, without understanding, covenantbreakers, without natural affection, implacable, unmerciful. For each, at least three precepts to overcome.":
+    "Ròm 1:29-31 — plen ak tout enjistis, fònikasyon, mechanste, konvwatiz, malveyans; plen ak jalouzi, touye moun, kont, twonpri, movèz fwa; medizan, kalomniyatè, moun ki rayi Bondye, awogan, ògeye, vantad, envantè bagay mal, dezobeyisan anvè paran, san konprann, moun ki pa kenbe pawòl yo, san afeksyon natirèl, san pitye, san mizèrikòd. Pou chak youn, omwen twa prensip pou simonte li.",
+
+  // Precepts
+  "Topical scripture chains. Each topic's key verse is highlighted in the Read tab with a ¹ footnote linking the rest of the chain.":
+    "Chèn ekriti pa sijè. Vèsè kle chak sijè make nan tab Li a ak yon nòt ¹ ki lye rès chèn nan.",
+  "View in Reader": "Gade nan Lektè a",
+  "A–Z TOPICS": "SIJÈ A–Z",
+  "FEATURED TOPICS": "SIJÈ VEDÈT",
+  "Hand-picked topics to start with, grouped by theme.": "Sijè chwazi espesyalman pou kòmanse, gwoupe pa tèm.",
+  "Relationships & Family": "Relasyon & Fanmi",
+  "Spiritual Life": "Lavi Espirityèl",
+  "Bible Study": "Etid Biblik",
+  "Identity": "Idantite",
+
+  // Study categories / weekly study
+  "Topics grouped into 12 life-topic categories. Check off each topic as you study it.":
+    "Sijè yo gwoupe an 12 kategori sou lavi. Tcheke chak sijè apre ou fin etidye li.",
+  "A": "Yon",
+  "week, 14-phase sequenced study": "semèn, etid ki gen 14 faz nan lòd",
+  "topics complete.": "sijè fin fèt.",
+  Weeks: "Semèn",
+
+  // How to use
+  "A quick guide to each part of the app. Tap a section to expand it.":
+    "Yon gid rapid pou chak pati nan app la. Peze yon seksyon pou louvri li.",
+  "The landing screen when you first open the app — your current chapter, bookmarks and notes at a glance, today's scripture, and featured collections from Twelve Scents Publishing.":
+    "Ekran ki parèt lè ou premye ouvri app la — chapit aktyèl ou, siyè ak nòt ou yo yon sèl kout je, ekriti jodi a, ak koleksyon vedèt Twelve Scents Publishing.",
+  "A daily home base with a greeting, the verse of the day, and quick links back into your reading. It refreshes with a new verse each time you open it.":
+    "Yon baz chak jou ak yon salitasyon, vèsè jou a, ak lyen rapid pou tounen nan lekti ou. Li chanje ak yon nouvo vèsè chak fwa ou louvri li.",
+  "Tap the chapter name at the top to jump to any book or chapter. Tap a verse to highlight, bookmark, add a note, copy, or share it. A small ¹ next to a verse links to a Precepts topic for related cross-references.":
+    "Peze non chapit la anlè a pou ale nan nenpòt liv oswa chapit. Peze yon vèsè pou siyale li, anrejistre li, ajoute yon nòt, kopye li, oswa pataje li. Yon ti ¹ akote yon vèsè lye ak yon sijè Prensip pou referans ki gen rapò.",
+  "Search the full text of every verse across the KJV and Apocrypha. Narrow results to specific books when you need to.":
+    "Chèche tout tèks chak vèsè nan Bib la ak Apokrif yo. Filtre rezilta yo pou liv espesifik lè ou bezwen.",
+  "The Chronological 1-Year plan, the Sin-Specific Battles topical study, and the topic-based study plans all live here, with progress you can check off as you go.":
+    "Plan Kwonolojik 1 An an, etid tematik Batay Kont Peche yo, ak plan etid pa sijè yo tout la, ak pwogre ou ka tcheke pandan w'ap avanse.",
+  "Every verse you've bookmarked and every note you've written, all in one place, organized for quick review.":
+    "Chak vèsè ou siyale ak chak nòt ou ekri, tout nan yon sèl kote, aranje pou revizyon rapid.",
+  "Topical scripture chains — pick a theme and see every cross-reference tied to it, with a one-tap link back into the Read tab for full context.":
+    "Chèn ekriti pa sijè — chwazi yon tèm epi wè tout referans ki lye ak li, ak yon lyen yon sèl peze pou tounen nan tab Li a pou gen kontèks konplè.",
+  "Toggle notifications, switch reading atmosphere (Royal Parchment, Temple Stone, Midnight Scroll), adjust font size, upload your own chapter narrations, and find About Us and Feedback.":
+    "Aktive oswa dezaktive notifikasyon, chanje anbyans lekti (Parchemen Wayal, Wòch Tanp, Woulo Minwi), ajiste gwosè font, telechaje pwòp narasyon chapit ou, epi jwenn Sou Nou ak Kòmantè.",
+
+  // About us
+  "a Twelve Scents Publishing app.": "yon app Twelve Scents Publishing.",
+  "We started with a simple, stubborn belief: the heroes of the Bible were brown-skinned men and women, and for too long, the books meant to introduce them to our children forgot to mention it.":
+    "Nou te kòmanse ak yon kwayans senp men tèti: ewo Bib la se te gason ak fanm ak po mawon, e pandan twòp tan, liv ki te sipoze prezante yo bay pitit nou yo te bliye mansyone sa.",
+  "So we didn't add representation. We restored the record — heroes drawn as Scripture and history actually describe them, rooted in the 1611 King James Bible, built for a generation that deserves to see itself in its own inheritance.":
+    "Se poutèt sa nou pa t' ajoute reprezantasyon. Nou te restore verite a — ewo desine jan Ekriti Sentespri ak istwa dekri yo tout bon, ki gen rasin nan Bib Wa Jak 1611 la, fèt pou yon jenerasyon ki merite wè tèt li nan pwòp eritaj li.",
+  "That began as picture books. It didn't end there.": "Sa te kòmanse kòm liv imaj. Li pa t' fini la.",
+  "Twelve Scents is now home to a growing family of apps": "Twelve Scents kounye a se kay yon fanmi app k'ap grandi",
+  ", each one built on the same conviction: that faith, character, and belonging should be within reach of every child of the diaspora, wherever they are and however they read.":
+    ", chak youn bati sou menm konviksyon an: lafwa, karaktè, ak sans apatenans ta dwe alapòte tout timoun dyaspora a, kèlkeswa kote yo ye ak jan yo li.",
+  "puts the full Bible in your hands — every hero, every word, ready to be read or heard in your own voice. Alongside it,":
+    "mete tout Bib la nan men ou — chak ewo, chak pawòl, pare pou li oswa tande nan pwòp vwa ou. Akote li,",
+  "helps you and your family navigate Scripture with clarity and purpose. And this is only the beginning; more tools for reading, teaching, and growing in faith are already on the way.":
+    "ede ou ak fanmi ou navige nan Ekriti Sentespri ak klète ak objektif. Epi sa se sèlman kòmansman an; plis zouti pou li, anseye, ak grandi nan lafwa deja sou wout.",
+  "Different apps. One publishing house. One mission, carried across every page and every screen:":
+    "Diferan app. Yon sèl kay piblikasyon. Yon sèl misyon, pote nan chak paj ak chak ekran:",
+  '"To put a Bible hero who looks like them into the hands of every child of the diaspora — building courage, character, and belonging through stories worth reading again and again."':
+    '"Mete yon ewo Bib ki sanble ak yo nan men chak timoun dyaspora a — bati kouraj, karaktè, ak sans apatenans atravè istwa ki vo lapenn li ankò e ankò."',
+  "The shelves were empty. We're filling them — book by book, app by app, generation by generation.":
+    "Etajè yo te vid. N'ap ranpli yo — liv pa liv, app pa app, jenerasyon pa jenerasyon.",
+  "Real heroes. Real faith. Real legacy.": "Vrè ewo. Vrè lafwa. Vrè eritaj.",
+
+  // Audio narration player
+  Verse: "Vèsè",
+  "Twelve Scents Narrator": "Narratè Twelve Scents",
+  "Apple Reader": "Lektè Apple",
+  "Close player": "Fèmen lektè a",
+  "Twelve Scents narration isn't available for this chapter yet.":
+    "Narasyon Twelve Scents pa disponib pou chapit sa a ankò.",
+  "Use Apple Reader": "Itilize Lektè Apple",
+  "Playback couldn't continue. Please try again.": "Repwodiksyon an pa t' ka kontinye. Tanpri eseye ankò.",
+  "Playback progress": "Pwogre repwodiksyon",
+  "Loading…": "Ap chaje…",
+  "Reading aloud — Apple Reader": "L'ap li a wòt vwa — Lektè Apple",
+  "Previous chapter": "Chapit anvan",
+  "Previous verse": "Vèsè anvan",
+  "Next verse": "Pwochen vèsè",
+  "Next chapter": "Pwochen chapit",
+  Pause: "Fè Poz",
+  Play: "Jwe",
+  "Playback speed": "Vitès repwodiksyon",
+  Narrator: "Narratè",
+  "Sleep Timer": "Minitè Dòmi",
+  "Play Next Chapter Automatically": "Jwe Pwochen Chapit Otomatikman",
+  NARRATOR: "NARRATÈ",
+  "APPLE READER": "LEKTÈ APPLE",
+  "No installed voices found.": "Pa gen vwa enstale yo jwenn.",
+  "SLEEP TIMER": "MINITÈ DÒMI",
+  Off: "Etenn",
+  "15 minutes": "15 minit",
+  "30 minutes": "30 minit",
+  "45 minutes": "45 minit",
+  "60 minutes": "60 minit",
+  "End of Chapter": "Fen Chapit la",
+  "Follow Narration": "Swiv Narasyon",
+  "Read Verse": "Li Vèsè",
+  "Start Reading Here": "Kòmanse Li Isit",
+  "Stop narration": "Sispann narasyon",
+};
+
 let _lang: Language = "en";
 
 export function setUiLanguage(lang: Language) {
@@ -281,9 +609,10 @@ export function getUiLanguage(): Language {
   return _lang;
 }
 
+const DICTS: Partial<Record<Language, Record<string, string>>> = { es: ES, ht: HT };
+
 /** Translates a UI string keyed by its English source text. Falls back to the
- * English input unchanged if there's no Spanish entry for it yet. */
+ * English input unchanged if there's no entry for it yet in that language. */
 export function translate(lang: Language, s: string): string {
-  if (lang === "es") return ES[s] ?? s;
-  return s;
+  return DICTS[lang]?.[s] ?? s;
 }

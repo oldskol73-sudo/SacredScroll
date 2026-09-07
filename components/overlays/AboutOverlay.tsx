@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Modal, Pressable, ScrollView, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
 
@@ -9,13 +10,16 @@ export function AboutOverlay() {
 
   return (
     <Modal visible={showAbout} animationType="fade" onRequestClose={() => setShowAbout(false)}>
+      <SafeAreaProvider>
       <SafeAreaView style={[styles.container, { backgroundColor: palette.bg }]} edges={["top", "bottom"]}>
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.headerRow}>
-            <Pressable onPress={() => setShowAbout(false)}>
-              <AppText size={20} dim>
-                ←
-              </AppText>
+            <Pressable
+              onPress={() => setShowAbout(false)}
+              style={[styles.backBtn, { backgroundColor: palette.cardAlt }]}
+              hitSlop={8}
+            >
+              <Ionicons name="chevron-back" size={20} color={palette.text} />
             </Pressable>
             <AppText variant="sansExtraBold" size={20}>
               {t("About Us")}
@@ -99,6 +103,7 @@ export function AboutOverlay() {
           </View>
         </ScrollView>
       </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }
@@ -107,6 +112,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { paddingTop: 16, paddingHorizontal: 20, paddingBottom: 40 },
   headerRow: { flexDirection: "row", alignItems: "center", gap: 14 },
+  backBtn: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
   card: { borderRadius: 14, padding: 18 },
   p: { lineHeight: 21, marginBottom: 14 },
   quoteCard: { borderRadius: 14, borderWidth: 1, borderStyle: "dashed", padding: 20, marginTop: 14 },

@@ -8,6 +8,7 @@ import { ALL_BOOKS, BOOKS_PICKER, BookSection, bookLabel, displayRef } from "@/c
 
 const SUGGESTED_EN = ["love", "faith", "shepherd", "light", "born again"];
 const SUGGESTED_ES = ["amor", "fe", "pastor", "luz", "nacer de nuevo"];
+const SUGGESTED_HT = ["renmen", "lafwa", "gadò", "limyè", "dezyèm fwa"];
 
 type ScopeType = "full" | "current" | BookSection;
 type Dropdown = "scope" | "book" | null;
@@ -22,6 +23,11 @@ const SECTION_LABEL_ES: Record<BookSection, string> = {
   "New Testament": "NT",
   Apocrypha: "Apócrifos",
 };
+const SECTION_LABEL_HT: Record<BookSection, string> = {
+  "Old Testament": "AT",
+  "New Testament": "NT",
+  Apocrypha: "Apokrif",
+};
 
 const BOOKS_BY_SECTION: Record<BookSection, string[]> = {
   "Old Testament": [],
@@ -34,7 +40,7 @@ BOOKS_PICKER.forEach((sec) => {
 
 export function SearchScreen() {
   const { palette, goTo, selectVerse, location, language, t } = useApp();
-  const SECTION_LABEL = language === "es" ? SECTION_LABEL_ES : SECTION_LABEL_EN;
+  const SECTION_LABEL = language === "es" ? SECTION_LABEL_ES : language === "ht" ? SECTION_LABEL_HT : SECTION_LABEL_EN;
   const [query, setQuery] = useState("");
   const [scopeType, setScopeType] = useState<ScopeType>("full");
   const [bookFilter, setBookFilter] = useState<string | null>(null);
@@ -199,7 +205,7 @@ export function SearchScreen() {
               {t("Enter a text to search")}
             </AppText>
             <View style={styles.chipRow}>
-              {(language === "es" ? SUGGESTED_ES : SUGGESTED_EN).map((s) => (
+              {(language === "es" ? SUGGESTED_ES : language === "ht" ? SUGGESTED_HT : SUGGESTED_EN).map((s) => (
                 <Pressable key={s} onPress={() => setQuery(s)} style={[styles.chip, { backgroundColor: palette.card }]}>
                   <AppText size={13} variant="sansBold">
                     {s}

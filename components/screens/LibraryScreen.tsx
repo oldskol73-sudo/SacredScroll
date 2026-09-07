@@ -102,7 +102,10 @@ export function LibraryScreen() {
                   <View style={styles.rowBetween}>
                     <Pressable onPress={() => goTo(n.book, n.chapter)}>
                       <AppText variant="sansExtraBold" size={11} color={palette.accent}>
-                        {localizeStoredRef(n.ref, language)} · {new Date(n.createdAt).toLocaleDateString(language === "es" ? "es" : undefined)}
+                        {localizeStoredRef(n.ref, language)} ·{" "}
+                        {new Date(n.createdAt).toLocaleDateString(
+                          language === "es" ? "es" : language === "ht" ? "ht" : undefined
+                        )}
                       </AppText>
                     </Pressable>
                     <Pressable onPress={() => notes.removeNote(n.id)}>

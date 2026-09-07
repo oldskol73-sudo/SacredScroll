@@ -1,7 +1,9 @@
 import { BIBLE, BibleLanguage } from "./verses";
 import bookLabelsEs from "./data/book_labels_es.json";
+import bookLabelsHt from "./data/book_labels_ht.json";
 
 const BOOK_LABELS_ES = bookLabelsEs as Record<string, string>;
+const BOOK_LABELS_HT = bookLabelsHt as Record<string, string>;
 
 export type BookSection = "Old Testament" | "Apocrypha" | "New Testament";
 
@@ -156,13 +158,22 @@ const SECTION_LABELS_ES: Record<BookSection, string> = {
   "New Testament": "Nuevo Testamento",
 };
 
+const SECTION_LABELS_HT: Record<BookSection, string> = {
+  "Old Testament": "Ansyen Testaman",
+  Apocrypha: "Apokrif",
+  "New Testament": "Nouvo Testaman",
+};
+
 export function sectionLabel(section: BookSection, lang: BibleLanguage = "en"): string {
-  return lang === "es" ? SECTION_LABELS_ES[section] : section;
+  if (lang === "es") return SECTION_LABELS_ES[section];
+  if (lang === "ht") return SECTION_LABELS_HT[section];
+  return section;
 }
 
 /** Localized display name for a canonical book key (e.g. "Psalms" -> "Salmos" in es). */
 export function bookLabel(book: string, lang: BibleLanguage = "en"): string {
   if (lang === "es") return BOOK_LABELS_ES[book] || book;
+  if (lang === "ht") return BOOK_LABELS_HT[book] || book;
   return book === "Psalms" ? "Psalm" : book;
 }
 

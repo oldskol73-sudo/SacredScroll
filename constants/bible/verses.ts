@@ -1,6 +1,8 @@
 import kjva from "./data/kjva.json";
 import rv1909 from "./data/rv1909.json";
 import rv1909Apocrypha from "./data/rv1909_apocrypha.json";
+import ht from "./data/ht.json";
+import htApocrypha from "./data/ht_apocrypha.json";
 import { PRECEPT_TOPICS } from "./precepts";
 
 export interface Verse {
@@ -8,7 +10,7 @@ export interface Verse {
   text: string;
 }
 
-export type BibleLanguage = "en" | "es";
+export type BibleLanguage = "en" | "es" | "ht";
 
 // Full KJV (1769 text) + Apocrypha, 81 books / 1,361 chapters, sourced from a
 // public-domain KJVA dataset and normalized to this app's book names in
@@ -27,10 +29,20 @@ export const BIBLE = kjva as unknown as Record<string, Record<string, Verse[]>>;
 // SAME English canonical book names used throughout this app (so every other lookup —
 // bookmarks, notes, search scope, precepts anchors — keeps working unchanged regardless
 // of reading language). versesFor() below falls back to English per-chapter for
-// anything not covered, and isSpanishAvailable() lets callers show a note about it.
+// anything not covered, and isTranslationAvailable() lets callers show a note about it.
 const BIBLE_ES: Record<string, Record<string, Verse[]>> = {
   ...(rv1909 as unknown as Record<string, Record<string, Verse[]>>),
   ...(rv1909Apocrypha as unknown as Record<string, Record<string, Verse[]>>),
+};
+
+// Bib La (Haitian Creole, public domain, published 1985 without copyright
+// notice) for the 66 canonical books, plus a public-domain Haitian Creole
+// Apocrypha covering all 15 deuterocanonical books this app tracks. Both are
+// keyed by the same English canonical book names as everything else. Unlike
+// the Spanish Apocrypha, this Creole Apocrypha coverage is complete.
+const BIBLE_HT: Record<string, Record<string, Verse[]>> = {
+  ...(ht as unknown as Record<string, Record<string, Verse[]>>),
+  ...(htApocrypha as unknown as Record<string, Record<string, Verse[]>>),
 };
 
 let _lang: BibleLanguage = "en";
@@ -49,14 +61,19 @@ export function getBibleLanguage(): BibleLanguage {
   return _lang;
 }
 
-/** True when a real (non-fallback) Spanish translation exists for this specific
- * chapter (not just the book — Apocrypha coverage is partial per-chapter). */
-export function isSpanishAvailable(book: string, chapter: number): boolean {
-  return !!BIBLE_ES[book]?.[String(chapter)]?.length;
+/** True when a real (non-fallback) translation exists for this specific chapter
+ * in the given language (not just the book — Spanish Apocrypha coverage is
+ * partial per-chapter). English is always available. */
+export function isTranslationAvailable(book: string, chapter: number, lang: BibleLanguage): boolean {
+  if (lang === "en") return true;
+  const table = lang === "es" ? BIBLE_ES : BIBLE_HT;
+  return !!table[book]?.[String(chapter)]?.length;
 }
 
 function activeBible(): Record<string, Record<string, Verse[]>> {
-  return _lang === "es" ? BIBLE_ES : BIBLE;
+  if (_lang === "es") return BIBLE_ES;
+  if (_lang === "ht") return BIBLE_HT;
+  return BIBLE;
 }
 
 export function versesFor(book: string, chapter: number): Verse[] {

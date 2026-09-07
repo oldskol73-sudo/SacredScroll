@@ -41,6 +41,7 @@ interface AppContextValue {
   goToDesk: () => void;
   enterContinueReading: () => void;
   skipToLibrary: () => void;
+  goToPlans: () => void;
 
   tab: TabKey;
   setTab: (t: TabKey) => void;
@@ -71,10 +72,14 @@ interface AppContextValue {
   setShowHowToUse: (v: boolean) => void;
   showAbout: boolean;
   setShowAbout: (v: boolean) => void;
+  showAboutTranslation: boolean;
+  setShowAboutTranslation: (v: boolean) => void;
   showChronoDetail: boolean;
   setShowChronoDetail: (v: boolean) => void;
-  showSinBattles: boolean;
-  setShowSinBattles: (v: boolean) => void;
+  showSinBattlesMark: boolean;
+  setShowSinBattlesMark: (v: boolean) => void;
+  showSinBattlesRomans: boolean;
+  setShowSinBattlesRomans: (v: boolean) => void;
   showStudyCategories: boolean;
   setShowStudyCategories: (v: boolean) => void;
   showWeeklyStudy: boolean;
@@ -131,8 +136,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [showPrecepts, setShowPrecepts] = useState(false);
   const [showHowToUse, setShowHowToUse] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
+  const [showAboutTranslation, setShowAboutTranslation] = useState(false);
   const [showChronoDetail, setShowChronoDetail] = useState(false);
-  const [showSinBattles, setShowSinBattles] = useState(false);
+  const [showSinBattlesMark, setShowSinBattlesMark] = useState(false);
+  const [showSinBattlesRomans, setShowSinBattlesRomans] = useState(false);
   const [showStudyCategories, setShowStudyCategories] = useState(false);
   const [showWeeklyStudy, setShowWeeklyStudy] = useState(false);
 
@@ -168,6 +175,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const skipToLibrary = useCallback(() => {
     setDesk(false);
     setTab("today");
+  }, []);
+
+  const goToPlans = useCallback(() => {
+    setDesk(false);
+    setTab("plans");
   }, []);
 
   const goTo = useCallback((book: string, chapter: number) => {
@@ -220,6 +232,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       goToDesk,
       enterContinueReading,
       skipToLibrary,
+      goToPlans,
       tab,
       setTab,
       location,
@@ -244,10 +257,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setShowHowToUse,
       showAbout,
       setShowAbout,
+      showAboutTranslation,
+      setShowAboutTranslation,
       showChronoDetail,
       setShowChronoDetail,
-      showSinBattles,
-      setShowSinBattles,
+      showSinBattlesMark,
+      setShowSinBattlesMark,
+      showSinBattlesRomans,
+      setShowSinBattlesRomans,
       showStudyCategories,
       setShowStudyCategories,
       showWeeklyStudy,
@@ -280,6 +297,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       goToDesk,
       enterContinueReading,
       skipToLibrary,
+      goToPlans,
       tab,
       location,
       goTo,
@@ -296,8 +314,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       showPrecepts,
       showHowToUse,
       showAbout,
+      showAboutTranslation,
       showChronoDetail,
-      showSinBattles,
+      showSinBattlesMark,
+      showSinBattlesRomans,
       showStudyCategories,
       showWeeklyStudy,
       bookmarks,

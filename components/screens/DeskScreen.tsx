@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { View, ScrollView, Pressable, Image, StyleSheet, Linking } from "react-native";
+import { View, ScrollView, Pressable, Image, StyleSheet, Linking, Share } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,6 +11,8 @@ import { displayRef } from "@/constants/bible/books";
 const TSP_LOGO = require("@/assets/images/bible/tsp-logo-cover.jpg");
 const FOUNDED_BANNER = require("@/assets/images/bible/founded-banner.jpg");
 const BIBLE_MAST = require("@/assets/images/bible/Biblemast.jpeg");
+const COMPASS = require("@/assets/images/bible/compass.jpg");
+const LIBRARY_THUMB = require("@/assets/images/bible/Library.jpeg");
 
 function greeting(t: (s: string) => string) {
   const h = new Date().getHours();
@@ -20,7 +22,8 @@ function greeting(t: (s: string) => string) {
 }
 
 function dateLabel(language: string) {
-  return new Date().toLocaleDateString(language === "es" ? "es" : undefined, {
+  const locale = language === "es" ? "es" : language === "ht" ? "ht" : undefined;
+  return new Date().toLocaleDateString(locale, {
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -28,11 +31,15 @@ function dateLabel(language: string) {
 }
 
 export function DeskScreen() {
-  const { palette, location, enterContinueReading, skipToLibrary, goTo, bookmarks, notes, showToast, language, t } = useApp();
+  const { palette, location, enterContinueReading, skipToLibrary, goToPlans, goTo, bookmarks, notes, language, t } = useApp();
   const insets = useSafeAreaInsets();
 
   const votd = useMemo(() => getRandomVerse(), []);
   const votdBookmarked = bookmarks.isBookmarked(votd.ref);
+
+  function onShareVerse() {
+    Share.share({ message: `"${votd.text}" — ${votd.ref} (KJV)` });
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: palette.bg }]} edges={["bottom"]}>
@@ -108,7 +115,7 @@ export function DeskScreen() {
                     {t("Bookmark")}
                   </AppText>
                 </Pressable>
-                <Pressable onPress={() => showToast(t("Coming soon"))} style={[styles.smallBtn, { backgroundColor: palette.cardAlt }]}>
+                <Pressable onPress={onShareVerse} style={[styles.smallBtn, { backgroundColor: palette.cardAlt }]}>
                   <AppText variant="sansBold" size={12.5}>
                     {t("Share")}
                   </AppText>
@@ -132,7 +139,7 @@ export function DeskScreen() {
                   {t("6 Books Available")}
                 </AppText>
                 <Pressable
-                  onPress={() => showToast(t("Coming soon"))}
+                  onPress={() => Linking.openURL("https://www.twelvescentspub.com")}
                   style={[styles.smallBtn, { backgroundColor: palette.accent, marginTop: 14, alignSelf: "flex-start" }]}
                 >
                   <AppText variant="sansBold" size={13} color="#fff">
@@ -145,16 +152,14 @@ export function DeskScreen() {
 
           <View>
             <SectionLabel>{t("Discover Something New")}</SectionLabel>
-            <Pressable onPress={() => showToast(t("Coming soon"))} style={[styles.discoverRow, { backgroundColor: palette.cardAlt }]}>
-              <View style={[styles.discoverArt, { backgroundColor: palette.accent }]}>
-                <Ionicons name="library-outline" size={20} color="#fff" />
-              </View>
+            <Pressable onPress={goToPlans} style={[styles.discoverRow, { backgroundColor: palette.cardAlt }]}>
+              <Image source={BIBLE_MAST} style={styles.discoverArt} resizeMode="cover" />
               <View style={{ flex: 1, minWidth: 0 }}>
                 <AppText variant="sansExtraBold" size={14}>
-                  {t("Psalms & Proverbs Study Guide")}
+                  {t("Sin-Specific Guide")}
                 </AppText>
                 <AppText size={12} dim style={{ marginTop: 3, lineHeight: 17 }}>
-                  {t("A companion volume for daily reflection, newly added to the catalog.")}
+                  {t("Thirty-six sins named in Mark 7 and Romans 1, each paired with scripture precepts to overcome it.")}
                 </AppText>
                 <AppText variant="sansExtraBold" size={12} color={palette.accent} style={{ marginTop: 6 }}>
                   {t("Learn More ›")}
@@ -163,30 +168,27 @@ export function DeskScreen() {
             </Pressable>
           </View>
 
-          <Pressable
-            onPress={() => Linking.openURL("https://apps.apple.com/app/face-jerusalem")}
-            style={[styles.adBanner, { backgroundColor: palette.cardAlt }]}
-          >
-            <View style={[styles.adIcon, { backgroundColor: palette.accent }]}>
-              <Ionicons name="compass-outline" size={20} color="#fff" />
-            </View>
+          <View style={[styles.adBanner, { backgroundColor: palette.cardAlt }]}>
+            <Image source={COMPASS} style={styles.adIcon} resizeMode="cover" />
             <View style={{ flex: 1, minWidth: 0 }}>
               <AppText variant="sansExtraBold" size={9.5} dim style={{ letterSpacing: 0.5 }}>
                 {t("ADVERTISEMENT")}
               </AppText>
               <AppText variant="sansExtraBold" size={12.5} style={{ marginTop: 2 }}>
-                {t("Face Jerusalem — find true north to the Holy City")}
+                {t("Face Jerusalem — Always know the direction of your homeland")}
               </AppText>
             </View>
             <AppText variant="sansExtraBold" size={12} color={palette.accent}>
-              {t("Get App ›")}
+              {t("Coming Soon")}
             </AppText>
-          </Pressable>
+          </View>
 
-          <Pressable onPress={skipToLibrary} style={styles.enterLibrary}>
-            <AppText variant="sansBold" size={12.5} dim>
-              {t("Enter Library →")}
+          <Pressable onPress={skipToLibrary} style={[styles.enterLibraryBtn, { backgroundColor: palette.cardAlt }]}>
+            <Image source={LIBRARY_THUMB} style={styles.enterLibraryIcon} resizeMode="cover" />
+            <AppText variant="sansExtraBold" size={16} style={{ flex: 1 }}>
+              {t("Enter Library")}
             </AppText>
+            <Ionicons name="arrow-forward" size={20} color={palette.accent} />
           </Pressable>
         </View>
       </ScrollView>
@@ -243,8 +245,9 @@ const styles = StyleSheet.create({
   smallBtn: { borderRadius: 10, paddingVertical: 9, paddingHorizontal: 14 },
   collectionArt: { width: "100%", height: 140 },
   discoverRow: { flexDirection: "row", gap: 14, alignItems: "center", borderRadius: 20, padding: 16 },
-  discoverArt: { width: 44, height: 44, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  discoverArt: { width: 44, height: 44, borderRadius: 10 },
   adBanner: { flexDirection: "row", gap: 12, alignItems: "center", borderRadius: 16, padding: 12 },
   adIcon: { width: 44, height: 44, borderRadius: 10, alignItems: "center", justifyContent: "center" },
-  enterLibrary: { alignItems: "center", padding: 6 },
+  enterLibraryBtn: { flexDirection: "row", alignItems: "center", gap: 14, borderRadius: 20, padding: 16 },
+  enterLibraryIcon: { width: 44, height: 44, borderRadius: 10 },
 });

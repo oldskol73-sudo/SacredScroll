@@ -3,9 +3,12 @@ export interface SinPrecept {
   note: string;
 }
 
+export type SinBattleSource = "mark" | "romans";
+
 export interface SinBattle {
   key: string;
   sin: string;
+  source: SinBattleSource;
   precepts: SinPrecept[];
 }
 
@@ -13,6 +16,7 @@ export const SIN_BATTLES: SinBattle[] = [
   {
     key: "evil-thoughts",
     sin: "Evil Thoughts",
+    source: "mark",
     precepts: [
       { ref: "Philippians 4:8", note: "think on things that are true, honest, just, pure, lovely" },
       { ref: "2 Corinthians 10:5", note: "casting down imaginations, bringing every thought into captivity" },
@@ -23,6 +27,7 @@ export const SIN_BATTLES: SinBattle[] = [
   {
     key: "adulteries",
     sin: "Adulteries",
+    source: "mark",
     precepts: [
       { ref: "Matthew 5:28", note: "whosoever looketh on a woman to lust hath committed adultery already" },
       { ref: "Hebrews 13:4", note: "marriage honourable, the bed undefiled; whoremongers and adulterers God will judge" },
@@ -33,6 +38,7 @@ export const SIN_BATTLES: SinBattle[] = [
   {
     key: "fornications",
     sin: "Fornications",
+    source: "mark",
     precepts: [
       { ref: "1 Corinthians 6:18", note: "flee fornication; he that committeth it sinneth against his own body" },
       { ref: "1 Thessalonians 4:3-5", note: "abstain from fornication; possess your vessel in sanctification" },
@@ -43,6 +49,7 @@ export const SIN_BATTLES: SinBattle[] = [
   {
     key: "murders",
     sin: "Murders",
+    source: "mark",
     precepts: [
       { ref: "Matthew 5:21-22", note: "anger without cause is the root murder grows from" },
       { ref: "1 John 3:15", note: "whosoever hateth his brother is a murderer" },
@@ -53,6 +60,7 @@ export const SIN_BATTLES: SinBattle[] = [
   {
     key: "thefts",
     sin: "Thefts",
+    source: "mark",
     precepts: [
       { ref: "Ephesians 4:28", note: "let him that stole steal no more, but labour, working with his hands" },
       { ref: "Leviticus 19:11", note: "ye shall not steal, neither deal falsely" },
@@ -62,6 +70,7 @@ export const SIN_BATTLES: SinBattle[] = [
   {
     key: "covetousness",
     sin: "Covetousness",
+    source: "mark",
     precepts: [
       { ref: "Hebrews 13:5", note: "be content; for he hath said, I will never leave thee" },
       { ref: "1 Timothy 6:6-10", note: "godliness with contentment is great gain" },
@@ -72,6 +81,7 @@ export const SIN_BATTLES: SinBattle[] = [
   {
     key: "wickedness",
     sin: "Wickedness",
+    source: "mark",
     precepts: [
       { ref: "Proverbs 4:14-15", note: "enter not into the path of the wicked; avoid it" },
       { ref: "Isaiah 55:7", note: "let the wicked forsake his way, and return unto the LORD" },
@@ -82,6 +92,7 @@ export const SIN_BATTLES: SinBattle[] = [
   {
     key: "deceit",
     sin: "Deceit",
+    source: "mark",
     precepts: [
       { ref: "Psalm 34:13", note: "keep thy tongue from evil, and thy lips from speaking guile" },
       { ref: "Ephesians 4:25", note: "put away lying; speak every man truth with his neighbour" },
@@ -92,6 +103,7 @@ export const SIN_BATTLES: SinBattle[] = [
   {
     key: "lasciviousness",
     sin: "Lasciviousness",
+    source: "mark",
     precepts: [
       { ref: "Romans 13:13-14", note: "walk honestly, not in chambering and wantonness" },
       { ref: "1 Peter 4:3", note: "we have wrought the will of the Gentiles, but no longer" },
@@ -102,6 +114,7 @@ export const SIN_BATTLES: SinBattle[] = [
   {
     key: "evil-eye",
     sin: "An Evil Eye",
+    source: "mark",
     precepts: [
       { ref: "James 3:14-16", note: "where envying and strife is, there is confusion and every evil work" },
       { ref: "1 Corinthians 13:4", note: "charity envieth not" },
@@ -112,6 +125,7 @@ export const SIN_BATTLES: SinBattle[] = [
   {
     key: "blasphemy",
     sin: "Blasphemy",
+    source: "mark",
     precepts: [
       { ref: "Ephesians 4:29", note: "let no corrupt communication proceed out of your mouth" },
       { ref: "Colossians 3:8", note: "put off blasphemy, filthy communication out of your mouth" },
@@ -122,6 +136,7 @@ export const SIN_BATTLES: SinBattle[] = [
   {
     key: "pride",
     sin: "Pride",
+    source: "mark",
     precepts: [
       { ref: "Proverbs 16:18", note: "pride goeth before destruction, and an haughty spirit before a fall" },
       { ref: "James 4:6-10", note: "God resisteth the proud; humble yourselves in the sight of the Lord" },
@@ -132,11 +147,243 @@ export const SIN_BATTLES: SinBattle[] = [
   {
     key: "foolishness",
     sin: "Foolishness",
+    source: "mark",
     precepts: [
       { ref: "Proverbs 1:7", note: "the fear of the LORD is the beginning of knowledge" },
       { ref: "Proverbs 9:10", note: "the fear of the LORD is the beginning of wisdom" },
       { ref: "Ephesians 5:15-17", note: "walk circumspectly, not as fools, but understanding the will of the Lord" },
       { ref: "Psalm 14:1", note: "the fool hath said in his heart, There is no God" },
+    ],
+  },
+  {
+    key: "unrighteousness",
+    sin: "Unrighteousness",
+    source: "romans",
+    precepts: [
+      { ref: "1 John 1:9", note: "if we confess our sins, he is faithful and just to cleanse us from all unrighteousness" },
+      { ref: "Romans 6:13", note: "yield yourselves unto God, as instruments of righteousness" },
+      { ref: "Matthew 5:6", note: "blessed are they which do hunger and thirst after righteousness" },
+      { ref: "Proverbs 11:5", note: "the righteousness of the perfect shall direct his way" },
+    ],
+  },
+  {
+    key: "fornication",
+    sin: "Fornication",
+    source: "romans",
+    precepts: [
+      { ref: "1 Corinthians 6:18", note: "flee fornication; he that committeth it sinneth against his own body" },
+      { ref: "1 Thessalonians 4:3", note: "this is the will of God, even your sanctification, that ye should abstain from fornication" },
+      { ref: "Hebrews 13:4", note: "marriage is honourable in all, and the bed undefiled" },
+    ],
+  },
+  {
+    key: "wickedness-romans",
+    sin: "Wickedness",
+    source: "romans",
+    precepts: [
+      { ref: "Isaiah 55:7", note: "let the wicked forsake his way, and return unto the LORD" },
+      { ref: "Psalm 34:14", note: "depart from evil, and do good; seek peace, and pursue it" },
+      { ref: "Proverbs 8:13", note: "the fear of the LORD is to hate evil" },
+    ],
+  },
+  {
+    key: "covetousness-romans",
+    sin: "Covetousness",
+    source: "romans",
+    precepts: [
+      { ref: "Luke 12:15", note: "take heed, and beware of covetousness" },
+      { ref: "Hebrews 13:5", note: "let your conversation be without covetousness; be content" },
+      { ref: "1 Timothy 6:6-10", note: "godliness with contentment is great gain" },
+    ],
+  },
+  {
+    key: "maliciousness",
+    sin: "Maliciousness",
+    source: "romans",
+    precepts: [
+      { ref: "Ephesians 4:31", note: "let all bitterness, wrath, anger, and malice, be put away from you" },
+      { ref: "1 Peter 2:1", note: "laying aside all malice, and all guile, and hypocrisies, and envies" },
+      { ref: "1 Corinthians 5:8", note: "let us keep the feast, not with the leaven of malice, but with sincerity and truth" },
+    ],
+  },
+  {
+    key: "envy",
+    sin: "Envy",
+    source: "romans",
+    precepts: [
+      { ref: "1 Corinthians 13:4", note: "charity envieth not; charity vaunteth not itself, is not puffed up" },
+      { ref: "Galatians 5:26", note: "let us not be desirous of vain glory, envying one another" },
+      { ref: "Proverbs 14:30", note: "envy is the rottenness of the bones" },
+    ],
+  },
+  {
+    key: "murder",
+    sin: "Murder",
+    source: "romans",
+    precepts: [
+      { ref: "Exodus 20:13", note: "thou shalt not kill" },
+      { ref: "Matthew 5:21-22", note: "anger without cause is the root murder grows from" },
+      { ref: "1 John 3:15", note: "whosoever hateth his brother is a murderer" },
+    ],
+  },
+  {
+    key: "debate",
+    sin: "Debate",
+    source: "romans",
+    precepts: [
+      { ref: "Proverbs 20:3", note: "it is an honour for a man to cease from strife" },
+      { ref: "Titus 3:9", note: "avoid foolish questions, and strivings about the law" },
+      { ref: "Philippians 2:14", note: "do all things without murmurings and disputings" },
+    ],
+  },
+  {
+    key: "deceit-romans",
+    sin: "Deceit",
+    source: "romans",
+    precepts: [
+      { ref: "Psalm 34:13", note: "keep thy tongue from evil, and thy lips from speaking guile" },
+      { ref: "Ephesians 4:25", note: "put away lying; speak every man truth with his neighbour" },
+      { ref: "Proverbs 12:22", note: "lying lips are abomination; they that deal truly are his delight" },
+    ],
+  },
+  {
+    key: "malignity",
+    sin: "Malignity",
+    source: "romans",
+    precepts: [
+      { ref: "Ephesians 4:32", note: "be ye kind one to another, tenderhearted, forgiving one another" },
+      { ref: "Romans 12:17", note: "recompense to no man evil for evil" },
+      { ref: "1 Peter 3:9", note: "not rendering evil for evil, or railing for railing" },
+    ],
+  },
+  {
+    key: "whisperers",
+    sin: "Whisperers",
+    source: "romans",
+    precepts: [
+      { ref: "Proverbs 16:28", note: "a whisperer separateth chief friends" },
+      { ref: "Proverbs 26:20", note: "where there is no talebearer, the strife ceaseth" },
+      { ref: "Leviticus 19:16", note: "thou shalt not go up and down as a talebearer among thy people" },
+    ],
+  },
+  {
+    key: "backbiters",
+    sin: "Backbiters",
+    source: "romans",
+    precepts: [
+      { ref: "Psalm 15:1,3", note: "who shall abide in thy tabernacle? he that backbiteth not with his tongue" },
+      { ref: "Proverbs 25:23", note: "a backbiting tongue" },
+      { ref: "James 4:11", note: "speak not evil one of another, brethren" },
+    ],
+  },
+  {
+    key: "haters-of-god",
+    sin: "Haters of God",
+    source: "romans",
+    precepts: [
+      { ref: "Romans 8:7", note: "the carnal mind is enmity against God" },
+      { ref: "James 4:4", note: "the friendship of the world is enmity with God" },
+      { ref: "1 John 4:20", note: "he that loveth not his brother whom he hath seen, how can he love God whom he hath not seen?" },
+    ],
+  },
+  {
+    key: "despiteful",
+    sin: "Despiteful",
+    source: "romans",
+    precepts: [
+      { ref: "1 Peter 3:9", note: "not rendering evil for evil, or railing for railing: but contrariwise blessing" },
+      { ref: "Matthew 5:44", note: "love your enemies, bless them that curse you" },
+      { ref: "Romans 12:14", note: "bless them which persecute you: bless, and curse not" },
+    ],
+  },
+  {
+    key: "proud",
+    sin: "Proud",
+    source: "romans",
+    precepts: [
+      { ref: "James 4:6", note: "God resisteth the proud, but giveth grace unto the humble" },
+      { ref: "Philippians 2:3", note: "let nothing be done through strife or vainglory; in lowliness of mind" },
+      { ref: "Proverbs 16:18", note: "pride goeth before destruction, and an haughty spirit before a fall" },
+    ],
+  },
+  {
+    key: "boasters",
+    sin: "Boasters",
+    source: "romans",
+    precepts: [
+      { ref: "Proverbs 27:1", note: "boast not thyself of to morrow; for thou knowest not what a day may bring forth" },
+      { ref: "James 4:16", note: "ye rejoice in your boastings: all such rejoicing is evil" },
+      { ref: "1 Corinthians 1:29,31", note: "that no flesh should glory in his presence... he that glorieth, let him glory in the Lord" },
+    ],
+  },
+  {
+    key: "inventors-of-evil-things",
+    sin: "Inventors of Evil Things",
+    source: "romans",
+    precepts: [
+      { ref: "Micah 2:1", note: "woe to them that devise iniquity, and work evil upon their beds" },
+      { ref: "Psalm 36:4", note: "he deviseth mischief upon his bed; he setteth himself in a way that is not good" },
+      { ref: "Romans 12:21", note: "be not overcome of evil, but overcome evil with good" },
+    ],
+  },
+  {
+    key: "disobedient-to-parents",
+    sin: "Disobedient to Parents",
+    source: "romans",
+    precepts: [
+      { ref: "Ephesians 6:1", note: "children, obey your parents in the Lord: for this is right" },
+      { ref: "Exodus 20:12", note: "honour thy father and thy mother" },
+      { ref: "Colossians 3:20", note: "children, obey your parents in all things: for this is well pleasing unto the Lord" },
+    ],
+  },
+  {
+    key: "without-understanding",
+    sin: "Without Understanding",
+    source: "romans",
+    precepts: [
+      { ref: "Proverbs 3:5", note: "trust in the LORD with all thine heart; and lean not unto thine own understanding" },
+      { ref: "Proverbs 4:7", note: "wisdom is the principal thing; therefore get wisdom: and with all thy getting get understanding" },
+      { ref: "Hosea 4:6", note: "my people are destroyed for lack of knowledge" },
+    ],
+  },
+  {
+    key: "covenantbreakers",
+    sin: "Covenantbreakers",
+    source: "romans",
+    precepts: [
+      { ref: "Psalm 15:4", note: "he that sweareth to his own hurt, and changeth not" },
+      { ref: "Ecclesiastes 5:4-5", note: "when thou vowest a vow unto God, defer not to pay it" },
+      { ref: "Malachi 2:14", note: "the LORD hath been witness between thee and the wife of thy covenant, against whom thou hast dealt treacherously" },
+    ],
+  },
+  {
+    key: "without-natural-affection",
+    sin: "Without Natural Affection",
+    source: "romans",
+    precepts: [
+      { ref: "Romans 12:10", note: "be kindly affectioned one to another with brotherly love" },
+      { ref: "1 Timothy 5:8", note: "if any provide not for his own... he hath denied the faith" },
+      { ref: "1 John 3:17", note: "whoso hath this world’s good, and seeth his brother have need, and shutteth up his bowels of compassion from him" },
+    ],
+  },
+  {
+    key: "implacable",
+    sin: "Implacable",
+    source: "romans",
+    precepts: [
+      { ref: "Matthew 5:23-24", note: "leave there thy gift... first be reconciled to thy brother" },
+      { ref: "Ephesians 4:26", note: "let not the sun go down upon your wrath" },
+      { ref: "Colossians 3:13", note: "forbearing one another, and forgiving one another" },
+    ],
+  },
+  {
+    key: "unmerciful",
+    sin: "Unmerciful",
+    source: "romans",
+    precepts: [
+      { ref: "Matthew 5:7", note: "blessed are the merciful: for they shall obtain mercy" },
+      { ref: "James 2:13", note: "he shall have judgment without mercy, that hath shewed no mercy" },
+      { ref: "Luke 6:36", note: "be ye therefore merciful, as your Father also is merciful" },
     ],
   },
 ];

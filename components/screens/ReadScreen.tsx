@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
-import { versesFor, isSpanishAvailable } from "@/constants/bible/verses";
+import { versesFor, isTranslationAvailable } from "@/constants/bible/verses";
 import { displayRef, isChapterLoaded, adjacentChapter } from "@/constants/bible/books";
 import { PRECEPT_ANCHOR_INDEX } from "@/constants/bible/precepts";
 import { HIGHLIGHT_COLORS } from "@/constants/theme";
@@ -40,7 +40,8 @@ export function ReadScreen() {
   const loaded = isChapterLoaded(location.book, location.chapter);
   const prev = adjacentChapter(location.book, location.chapter, -1);
   const next = adjacentChapter(location.book, location.chapter, 1);
-  const showSpanishFallbackNote = language === "es" && !isSpanishAvailable(location.book, location.chapter);
+  const showTranslationFallbackNote =
+    language !== "en" && !isTranslationAvailable(location.book, location.chapter, language);
 
   const isNarratingChapter = narration.book === location.book && narration.chapter === location.chapter;
 
@@ -106,10 +107,10 @@ export function ReadScreen() {
         onScroll={onScroll}
         scrollEventThrottle={32}
       >
-        {showSpanishFallbackNote ? (
+        {showTranslationFallbackNote ? (
           <View style={[styles.fallbackNote, { backgroundColor: palette.cardAlt }]}>
             <AppText size={12} dim style={{ lineHeight: 17, fontStyle: "italic" }}>
-              {t("This chapter's Spanish translation isn't ready yet — showing the English text.")}
+              {t("This chapter's translation isn't ready yet — showing the English text.")}
             </AppText>
           </View>
         ) : null}
@@ -201,7 +202,11 @@ export function ReadScreen() {
       {prev ? (
         <Pressable
           onPress={() => goTo(prev.book, prev.chapter)}
-          style={[styles.sideArrow, styles.sideArrowLeft, { backgroundColor: palette.cardAlt }]}
+          style={[
+            styles.sideArrow,
+            styles.sideArrowLeft,
+            { backgroundColor: palette.cardAlt, marginTop: headerSpace / 2 - 17 },
+          ]}
         >
           <Ionicons name="chevron-back" size={16} color={palette.accent} />
         </Pressable>
@@ -209,7 +214,11 @@ export function ReadScreen() {
       {next ? (
         <Pressable
           onPress={() => goTo(next.book, next.chapter)}
-          style={[styles.sideArrow, styles.sideArrowRight, { backgroundColor: palette.cardAlt }]}
+          style={[
+            styles.sideArrow,
+            styles.sideArrowRight,
+            { backgroundColor: palette.cardAlt, marginTop: headerSpace / 2 - 17 },
+          ]}
         >
           <Ionicons name="chevron-forward" size={16} color={palette.accent} />
         </Pressable>

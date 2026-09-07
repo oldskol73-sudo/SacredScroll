@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Modal, Pressable, ScrollView, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
 
@@ -53,12 +54,15 @@ export function HowToUseOverlay() {
 
   return (
     <Modal visible={showHowToUse} animationType="fade" onRequestClose={() => setShowHowToUse(false)}>
+      <SafeAreaProvider>
       <SafeAreaView style={[styles.container, { backgroundColor: palette.bg }]} edges={["top", "bottom"]}>
         <View style={styles.headerRow}>
-          <Pressable onPress={() => setShowHowToUse(false)}>
-            <AppText size={20} dim>
-              ←
-            </AppText>
+          <Pressable
+            onPress={() => setShowHowToUse(false)}
+            style={[styles.backBtn, { backgroundColor: palette.cardAlt }]}
+            hitSlop={8}
+          >
+            <Ionicons name="chevron-back" size={20} color={palette.text} />
           </Pressable>
           <AppText variant="sansExtraBold" size={20}>
             {t("How to Use")}
@@ -94,6 +98,7 @@ export function HowToUseOverlay() {
           </View>
         </ScrollView>
       </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }
@@ -111,4 +116,5 @@ const styles = StyleSheet.create({
   },
   card: { borderRadius: 16, padding: 18 },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  backBtn: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
 });
