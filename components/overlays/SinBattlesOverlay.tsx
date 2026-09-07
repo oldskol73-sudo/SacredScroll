@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { View, Modal, Pressable, ScrollView, StyleSheet } from "react-native";
-import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import { OverlaySafeArea } from "@/components/OverlaySafeArea";
 import { Ionicons } from "@expo/vector-icons";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
@@ -51,8 +51,7 @@ export function SinBattlesOverlay({ source, visible, onClose }: Props) {
 
   return (
     <Modal visible={visible} animationType="fade" onRequestClose={onClose}>
-      <SafeAreaProvider>
-      <SafeAreaView style={[styles.container, { backgroundColor: palette.bg }]} edges={["top", "bottom"]}>
+      <OverlaySafeArea style={[styles.container, { backgroundColor: palette.bg }]}>
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.headerRow}>
             <Pressable onPress={onClose} style={[styles.backBtn, { backgroundColor: palette.cardAlt }]} hitSlop={8}>
@@ -80,8 +79,7 @@ export function SinBattlesOverlay({ source, visible, onClose }: Props) {
             ))}
           </View>
         </ScrollView>
-      </SafeAreaView>
-      </SafeAreaProvider>
+      </OverlaySafeArea>
     </Modal>
   );
 }

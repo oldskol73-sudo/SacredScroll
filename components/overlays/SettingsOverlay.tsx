@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Modal, Pressable, ScrollView, StyleSheet, Linking } from "react-native";
-import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import { OverlaySafeArea } from "@/components/OverlaySafeArea";
 import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import * as StoreReview from "expo-store-review";
@@ -84,8 +84,7 @@ export function SettingsOverlay() {
       animationType="fade"
       onRequestClose={() => setShowSettings(false)}
     >
-      <SafeAreaProvider>
-      <SafeAreaView style={[styles.container, { backgroundColor: palette.bg }]} edges={["top", "bottom"]}>
+      <OverlaySafeArea style={[styles.container, { backgroundColor: palette.bg }]}>
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.headerRow}>
             <Pressable
@@ -239,8 +238,7 @@ export function SettingsOverlay() {
             </Pressable>
           </View>
         </ScrollView>
-      </SafeAreaView>
-      </SafeAreaProvider>
+      </OverlaySafeArea>
     </Modal>
   );
 }

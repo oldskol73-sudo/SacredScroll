@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Modal, Pressable, ScrollView, StyleSheet } from "react-native";
-import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import { OverlaySafeArea } from "@/components/OverlaySafeArea";
 import { Ionicons } from "@expo/vector-icons";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
@@ -45,8 +45,7 @@ export function ChronoDetailOverlay() {
 
   return (
     <Modal visible={showChronoDetail} animationType="fade" onRequestClose={() => setShowChronoDetail(false)}>
-      <SafeAreaProvider>
-      <SafeAreaView style={[styles.container, { backgroundColor: palette.bg }]} edges={["top", "bottom"]}>
+      <OverlaySafeArea style={[styles.container, { backgroundColor: palette.bg }]}>
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.headerRow}>
             <Pressable
@@ -212,8 +211,7 @@ export function ChronoDetailOverlay() {
             </View>
           ) : null}
         </ScrollView>
-      </SafeAreaView>
-      </SafeAreaProvider>
+      </OverlaySafeArea>
     </Modal>
   );
 }

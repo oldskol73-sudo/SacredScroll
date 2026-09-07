@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Modal, Pressable, ScrollView, StyleSheet } from "react-native";
-import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import { OverlaySafeArea } from "@/components/OverlaySafeArea";
 import { Ionicons } from "@expo/vector-icons";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
@@ -54,8 +54,7 @@ export function HowToUseOverlay() {
 
   return (
     <Modal visible={showHowToUse} animationType="fade" onRequestClose={() => setShowHowToUse(false)}>
-      <SafeAreaProvider>
-      <SafeAreaView style={[styles.container, { backgroundColor: palette.bg }]} edges={["top", "bottom"]}>
+      <OverlaySafeArea style={[styles.container, { backgroundColor: palette.bg }]}>
         <View style={styles.headerRow}>
           <Pressable
             onPress={() => setShowHowToUse(false)}
@@ -97,8 +96,7 @@ export function HowToUseOverlay() {
             })}
           </View>
         </ScrollView>
-      </SafeAreaView>
-      </SafeAreaProvider>
+      </OverlaySafeArea>
     </Modal>
   );
 }

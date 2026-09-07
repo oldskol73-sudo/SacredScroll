@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Pressable, Modal, StyleSheet, ScrollView } from "react-native";
-import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import { OverlaySafeArea } from "@/components/OverlaySafeArea";
 import { Ionicons } from "@expo/vector-icons";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
@@ -34,8 +34,7 @@ export function BookPicker() {
 
   return (
     <Modal visible={showBookPicker} animationType="fade" onRequestClose={close}>
-      <SafeAreaProvider>
-      <SafeAreaView style={[styles.container, { backgroundColor: palette.bg }]} edges={["top", "bottom"]}>
+      <OverlaySafeArea style={[styles.container, { backgroundColor: palette.bg }]}>
         <View style={[styles.header, { backgroundColor: palette.card, borderBottomColor: palette.divider }]}>
           <View style={styles.headerLeft}>
             {pickerBook ? (
@@ -100,8 +99,7 @@ export function BookPicker() {
             ))
           )}
         </ScrollView>
-      </SafeAreaView>
-      </SafeAreaProvider>
+      </OverlaySafeArea>
     </Modal>
   );
 }

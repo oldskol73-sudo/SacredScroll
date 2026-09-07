@@ -121,13 +121,17 @@ export class AppleReaderService {
   }
 
   async stop() {
+    // Reset state before the await: playChapter is often called synchronously
+    // right after stop(), and clearing these fields after the await would wipe
+    // the new chapter's state mid-playback (leaving onDone unable to advance
+    // past the first verse).
     this.generation++;
-    await Speech.stop();
     this.book = null;
     this.chapter = null;
     this.verseNumbers = [];
     this.verseIndex = 0;
     this.setStatus("stopped");
+    await Speech.stop();
   }
 
   nextVerse() {

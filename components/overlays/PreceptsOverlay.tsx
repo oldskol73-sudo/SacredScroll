@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { View, Modal, Pressable, ScrollView, StyleSheet } from "react-native";
-import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { OverlaySafeArea } from "@/components/OverlaySafeArea";
 import { Ionicons } from "@expo/vector-icons";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
@@ -97,8 +98,7 @@ export function PreceptsOverlay() {
 
   return (
     <Modal visible={showPrecepts} animationType="fade" onRequestClose={() => setShowPrecepts(false)}>
-      <SafeAreaProvider>
-      <SafeAreaView style={[styles.container, { backgroundColor: palette.bg }]} edges={["top", "bottom"]}>
+      <OverlaySafeArea style={[styles.container, { backgroundColor: palette.bg }]}>
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.headerRow}>
             <Pressable
@@ -184,8 +184,7 @@ export function PreceptsOverlay() {
             })}
           </View>
         </ScrollView>
-      </SafeAreaView>
-      </SafeAreaProvider>
+      </OverlaySafeArea>
 
       <FeaturedTopicSheet
         topic={selectedFeatured}
@@ -229,11 +228,11 @@ function FeaturedTopicSheet({
   onViewRef: (ref: string) => void;
   onViewInReader: (anchor: { book: string; chapter: number }) => void;
 }) {
+  const insets = useSafeAreaInsets();
   return (
     <Modal visible={!!topic} transparent animationType="slide" onRequestClose={onClose}>
-      <SafeAreaProvider>
       <Pressable style={styles.backdrop} onPress={onClose} />
-      <SafeAreaView edges={["bottom"]} style={[styles.sheet, { backgroundColor: palette.card }]}>
+      <View style={[styles.sheet, { backgroundColor: palette.card, paddingBottom: 16 + insets.bottom }]}>
         <AppText variant="sansExtraBold" size={17} style={{ marginBottom: 14 }}>
           {topic?.title}
         </AppText>
@@ -257,8 +256,7 @@ function FeaturedTopicSheet({
             {t("View in Reader")}
           </AppText>
         </Pressable>
-      </SafeAreaView>
-      </SafeAreaProvider>
+      </View>
     </Modal>
   );
 }
