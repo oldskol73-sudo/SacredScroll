@@ -31,7 +31,7 @@ function dateLabel(language: string) {
 }
 
 export function DeskScreen() {
-  const { palette, location, enterContinueReading, skipToLibrary, goToPlans, goTo, bookmarks, notes, language, t } = useApp();
+  const { palette, location, enterContinueReading, setShowBookPicker, goToPlans, goTo, bookmarks, notes, language, t } = useApp();
   const insets = useSafeAreaInsets();
 
   const votd = useMemo(() => getRandomVerse(), []);
@@ -64,11 +64,11 @@ export function DeskScreen() {
         </View>
 
         <View style={styles.body}>
-          <Pressable onPress={enterContinueReading} style={[styles.bookCard, { backgroundColor: palette.card }]}>
+          <Pressable onPress={enterContinueReading} style={[styles.bookCard, { backgroundColor: palette.card, borderColor: palette.accent }]}>
             <View style={styles.bookCardRow}>
-              <Image source={BIBLE_MAST} style={styles.bookCover} resizeMode="cover" />
+              <Image source={BIBLE_MAST} style={styles.bookCoverHero} resizeMode="cover" />
               <View style={{ flex: 1, minWidth: 0, alignItems: "center" }}>
-                <AppText variant="sansExtraBold" size={15}>
+                <AppText variant="sansExtraBold" size={17}>
                   {displayRef(location.book, location.chapter, language)}
                 </AppText>
                 <View style={[styles.statsRow, { marginTop: 8 }]}>
@@ -77,10 +77,11 @@ export function DeskScreen() {
                 </View>
               </View>
             </View>
-            <View style={[styles.bookCtaBtn, { backgroundColor: palette.accent }]}>
-              <AppText variant="sansExtraBold" size={13} color="#fff">
+            <View style={[styles.bookCtaBtnHero, { backgroundColor: palette.accent }]}>
+              <AppText variant="sansExtraBold" size={14.5} color="#fff">
                 {t("Continue Reading")}
               </AppText>
+              <Ionicons name="arrow-forward" size={16} color="#fff" />
             </View>
           </Pressable>
 
@@ -124,72 +125,68 @@ export function DeskScreen() {
             </View>
           </View>
 
-          <View>
-            <SectionLabel>{t("Featured Collection")}</SectionLabel>
-            <View style={[styles.card, { backgroundColor: palette.card, padding: 0, overflow: "hidden" }]}>
-              <Image source={FOUNDED_BANNER} style={styles.collectionArt} resizeMode="cover" />
-              <View style={{ padding: 18 }}>
-                <AppText variant="serifBold" size={18}>
-                  {t("Mighty Men of Valor")}
-                </AppText>
-                <AppText size={12.5} dim style={{ marginTop: 6, lineHeight: 18 }}>
-                  {t("Twelve portraits of courage and faith, from Gideon's three hundred to David's mighty men.")}
-                </AppText>
-                <AppText variant="sansBold" size={11.5} color={palette.accent} style={{ marginTop: 10 }}>
-                  {t("6 Books Available")}
-                </AppText>
-                <Pressable
-                  onPress={() => Linking.openURL("https://www.twelvescentspub.com")}
-                  style={[styles.smallBtn, { backgroundColor: palette.accent, marginTop: 14, alignSelf: "flex-start" }]}
-                >
-                  <AppText variant="sansBold" size={13} color="#fff">
-                    {t("Open Collection")}
-                  </AppText>
-                </Pressable>
-              </View>
-            </View>
-          </View>
-
-          <View>
-            <SectionLabel>{t("Discover Something New")}</SectionLabel>
-            <Pressable onPress={goToPlans} style={[styles.discoverRow, { backgroundColor: palette.cardAlt }]}>
-              <Image source={BIBLE_MAST} style={styles.discoverArt} resizeMode="cover" />
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <AppText variant="sansExtraBold" size={14}>
-                  {t("Sin-Specific Guide")}
-                </AppText>
-                <AppText size={12} dim style={{ marginTop: 3, lineHeight: 17 }}>
-                  {t("Thirty-six sins named in Mark 7 and Romans 1, each paired with scripture precepts to overcome it.")}
-                </AppText>
-                <AppText variant="sansExtraBold" size={12} color={palette.accent} style={{ marginTop: 6 }}>
-                  {t("Learn More ›")}
-                </AppText>
-              </View>
-            </Pressable>
-          </View>
-
-          <View style={[styles.adBanner, { backgroundColor: palette.cardAlt }]}>
-            <Image source={COMPASS} style={styles.adIcon} resizeMode="cover" />
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <AppText variant="sansExtraBold" size={9.5} dim style={{ letterSpacing: 0.5 }}>
-                {t("ADVERTISEMENT")}
-              </AppText>
-              <AppText variant="sansExtraBold" size={12.5} style={{ marginTop: 2 }}>
-                {t("Face Jerusalem — Always know the direction of your homeland")}
-              </AppText>
-            </View>
-            <AppText variant="sansExtraBold" size={12} color={palette.accent}>
-              {t("Coming Soon")}
-            </AppText>
-          </View>
-
-          <Pressable onPress={skipToLibrary} style={[styles.enterLibraryBtn, { backgroundColor: palette.cardAlt }]}>
+          <Pressable onPress={() => setShowBookPicker(true)} style={[styles.enterLibraryBtn, { backgroundColor: palette.cardAlt }]}>
             <Image source={LIBRARY_THUMB} style={styles.enterLibraryIcon} resizeMode="cover" />
             <AppText variant="sansExtraBold" size={16} style={{ flex: 1 }}>
-              {t("Enter Library")}
+              {t("Open the Word")}
             </AppText>
             <Ionicons name="arrow-forward" size={20} color={palette.accent} />
           </Pressable>
+
+          <View>
+            <SectionLabel>{t("Discover Something New")}</SectionLabel>
+            <View style={{ gap: 14 }}>
+              <Pressable onPress={goToPlans} style={[styles.discoverRow, { backgroundColor: palette.cardAlt }]}>
+                <Image source={BIBLE_MAST} style={styles.discoverArt} resizeMode="cover" />
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <AppText variant="sansExtraBold" size={14}>
+                    {t("Sin-Specific Guide")}
+                  </AppText>
+                  <AppText size={12} dim style={{ marginTop: 3, lineHeight: 17 }}>
+                    {t("Thirty-six sins named in Mark 7 and Romans 1, each paired with scripture precepts to overcome it.")}
+                  </AppText>
+                  <AppText variant="sansExtraBold" size={12} color={palette.accent} style={{ marginTop: 6 }}>
+                    {t("Learn More ›")}
+                  </AppText>
+                </View>
+              </Pressable>
+
+              <View style={[styles.card, { backgroundColor: palette.card, padding: 0, overflow: "hidden" }]}>
+                <Image source={FOUNDED_BANNER} style={styles.collectionArt} resizeMode="cover" />
+                <View style={{ padding: 18 }}>
+                  <AppText variant="serifBold" size={18}>
+                    {t("Mighty Men of Valor")}
+                  </AppText>
+                  <AppText size={12.5} dim style={{ marginTop: 6, lineHeight: 18 }}>
+                    {t("Twelve portraits of courage and faith, from Gideon's three hundred to David's mighty men.")}
+                  </AppText>
+                  <AppText variant="sansBold" size={11.5} color={palette.accent} style={{ marginTop: 10 }}>
+                    {t("6 Books Available")}
+                  </AppText>
+                  <Pressable
+                    onPress={() => Linking.openURL("https://www.twelvescentspub.com")}
+                    style={[styles.smallBtn, { backgroundColor: palette.accent, marginTop: 14, alignSelf: "flex-start" }]}
+                  >
+                    <AppText variant="sansBold" size={13} color="#fff">
+                      {t("Open Collection")}
+                    </AppText>
+                  </Pressable>
+                </View>
+              </View>
+
+              <View style={[styles.adBanner, { backgroundColor: palette.cardAlt }]}>
+                <Image source={COMPASS} style={styles.adIcon} resizeMode="cover" />
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <AppText variant="sansExtraBold" size={12.5}>
+                    {t('Face Jerusalem — The new compass app designed to "Always Know the Direction of Your Homeland"')}
+                  </AppText>
+                </View>
+                <AppText variant="sansExtraBold" size={12} color={palette.accent}>
+                  {t("Coming Soon")}
+                </AppText>
+              </View>
+            </View>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -235,10 +232,18 @@ const styles = StyleSheet.create({
   },
   logoWatermark: { width: "75%", height: "75%", opacity: 0.16 },
   body: { padding: 20, paddingTop: 20, gap: 20 },
-  bookCard: { borderRadius: 20, padding: 18 },
+  bookCard: { borderRadius: 20, padding: 20, borderWidth: 2 },
   bookCardRow: { flexDirection: "row", gap: 14, alignItems: "center" },
-  bookCtaBtn: { marginTop: 14, borderRadius: 12, paddingVertical: 11, alignItems: "center" },
-  bookCover: { width: 64, height: 64, borderRadius: 14, overflow: "hidden" },
+  bookCtaBtnHero: {
+    marginTop: 16,
+    borderRadius: 12,
+    paddingVertical: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  bookCoverHero: { width: 76, height: 76, borderRadius: 16, overflow: "hidden" },
   statsRow: { flexDirection: "row", gap: 16, marginTop: 10 },
   card: { borderRadius: 20, padding: 20, borderWidth: 1 },
   btnRow: { flexDirection: "row", gap: 10, marginTop: 16, flexWrap: "wrap" },

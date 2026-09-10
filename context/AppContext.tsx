@@ -40,7 +40,6 @@ interface AppContextValue {
   desk: boolean;
   goToDesk: () => void;
   enterContinueReading: () => void;
-  skipToLibrary: () => void;
   goToPlans: () => void;
 
   tab: TabKey;
@@ -124,7 +123,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const [desk, setDesk] = useState(true);
   const [tab, setTab] = useState<TabKey>("today");
-  const [location, setLocation] = useState<Location>({ book: "John", chapter: 3 });
+  const [location, setLocation] = useState<Location>({ book: "Deuteronomy", chapter: 28 });
   const [selectedVerse, setSelectedVerse] = useState<number | null>(null);
   const [openFootnote, setOpenFootnote] = useState<number | null>(null);
   const [readerHeaderCollapsed, setReaderHeaderCollapsed] = useState(false);
@@ -170,11 +169,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const enterContinueReading = useCallback(() => {
     setDesk(false);
     setTab("read");
-  }, []);
-
-  const skipToLibrary = useCallback(() => {
-    setDesk(false);
-    setTab("today");
   }, []);
 
   const goToPlans = useCallback(() => {
@@ -231,7 +225,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       desk,
       goToDesk,
       enterContinueReading,
-      skipToLibrary,
       goToPlans,
       tab,
       setTab,
@@ -296,7 +289,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       desk,
       goToDesk,
       enterContinueReading,
-      skipToLibrary,
       goToPlans,
       tab,
       location,
