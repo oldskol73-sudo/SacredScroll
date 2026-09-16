@@ -1,8 +1,20 @@
 import { Platform } from "react-native";
-import * as Speech from "expo-speech";
 import { versesFor, verseText } from "@/constants/bible/verses";
 import { normalizeForNarration } from "@/constants/audio/narrationText";
 import { Narrator, NarrationErrorCode, NarrationError, NarrationPlaybackStatus, PlaybackSpeed } from "@/constants/audio/types";
+
+// expo-speech throws at require() time when its native module isn't present
+// in the running binary (e.g. an Expo Go build that predates this dependency,
+// or a custom dev client built before it was added). A plain top-level
+// `import` would crash the whole app on launch since AppContext constructs
+// this service unconditionally; routing it through require() inside try/catch
+// lets that failure degrade to "text-to-speech unavailable" instead.
+let Speech: typeof import("expo-speech") | null;
+try {
+  Speech = require("expo-speech");
+} catch {
+  Speech = null;
+}
 
 export interface AppleReaderCallbacks {
   onVerseChange?: (verse: number) => void;
@@ -37,6 +49,7 @@ export class AppleReaderService {
    * specific named voice exists — callers should fall back to no `voice` set
    * (system default) if this list is empty. */
   static async getAvailableVoices(): Promise<Narrator[]> {
+    if (!Speech) return [];
     const voices = await Speech.getAvailableVoicesAsync();
     return voices
       .filter((v) => v.language?.toLowerCase().startsWith("en"))
@@ -70,6 +83,10 @@ export class AppleReaderService {
   /** Starts reading a chapter aloud from its first verse, or from `fromVerse`
    * ("Start Reading Here"), continuing forward automatically. */
   playChapter(book: string, chapter: number, fromVerse?: number) {
+    if (!Speech) {
+      this.fail("voiceUnavailable", "Text-to-speech isn't available on this build.");
+      return;
+    }
     const verses = versesFor(book, chapter);
     if (!verses.length) {
       this.fail("chapterAudioUnavailable", `No scripture text for ${book} ${chapter}`);
@@ -87,6 +104,10 @@ export class AppleReaderService {
 
   /** Reads exactly one verse aloud and stops ("Read Verse"). */
   playVerseOnly(book: string, chapter: number, verse: number) {
+    if (!Speech) {
+      this.fail("voiceUnavailable", "Text-to-speech isn't available on this build.");
+      return;
+    }
     const target = verseText(book, chapter, verse);
     if (!target) {
       this.fail("chapterAudioUnavailable", `No scripture text for ${book} ${chapter}:${verse}`);
@@ -107,7 +128,7 @@ export class AppleReaderService {
       await this.stop();
       return;
     }
-    await Speech.pause();
+    await Speech?.pause();
     this.setStatus("paused");
   }
 
@@ -116,7 +137,7 @@ export class AppleReaderService {
       this.speakCurrentVerse();
       return;
     }
-    await Speech.resume();
+    await Speech?.resume();
     this.setStatus("playing");
   }
 
@@ -131,13 +152,13 @@ export class AppleReaderService {
     this.verseNumbers = [];
     this.verseIndex = 0;
     this.setStatus("stopped");
-    await Speech.stop();
+    await Speech?.stop();
   }
 
   nextVerse() {
     if (this.verseIndex >= this.verseNumbers.length - 1) return;
     this.generation++;
-    Speech.stop();
+    Speech?.stop();
     this.verseIndex++;
     this.speakCurrentVerse();
   }
@@ -145,13 +166,13 @@ export class AppleReaderService {
   previousVerse() {
     if (this.verseIndex <= 0) return;
     this.generation++;
-    Speech.stop();
+    Speech?.stop();
     this.verseIndex--;
     this.speakCurrentVerse();
   }
 
   private speakCurrentVerse() {
-    if (!this.book || this.chapter == null) return;
+    if (!Speech || !this.book || this.chapter == null) return;
     const verse = this.currentVerse;
     if (verse == null) {
       this.setStatus("stopped");

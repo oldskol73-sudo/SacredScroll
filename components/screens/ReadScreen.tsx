@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, ScrollView, Pressable, StyleSheet, NativeSyntheticEvent, NativeScrollEvent, LayoutChangeEvent } from "react-native";
+import { View, ScrollView, Image, Pressable, StyleSheet, NativeSyntheticEvent, NativeScrollEvent, LayoutChangeEvent } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useApp } from "@/context/AppContext";
@@ -8,7 +9,11 @@ import { versesFor, isTranslationAvailable } from "@/constants/bible/verses";
 import { displayRef, isChapterLoaded, adjacentChapter } from "@/constants/bible/books";
 import { PRECEPT_ANCHOR_INDEX } from "@/constants/bible/precepts";
 import { HIGHLIGHT_COLORS } from "@/constants/theme";
-import { READER_HEADER_EXPANDED_HEIGHT } from "@/components/Header";
+import { READER_HEADER_HEIGHT } from "@/components/Header";
+
+const LOGO_HERO = require("@/assets/images/bible/logo-hero.jpg");
+const HERO_GRAD: [string, string] = ["#23160E", "#4B3626"];
+const HERO_IMAGE_HEIGHT = 168;
 
 // How far below the top of the visible reading area a narrated verse is
 // scrolled to, so it lands in a comfortable reading position rather than
@@ -29,7 +34,6 @@ export function ReadScreen() {
     openFootnote,
     toggleFootnote,
     goTo,
-    onReaderScroll,
     language,
     narration,
     t,
@@ -71,7 +75,6 @@ export function ReadScreen() {
 
   function onScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
     const y = e.nativeEvent.contentOffset.y;
-    onReaderScroll(y);
 
     if (programmaticScroll.current || !isNarratingChapter || narration.verse == null || !followNarration) return;
     const targetY = versePositions.current[narration.verse];
@@ -85,11 +88,11 @@ export function ReadScreen() {
     setFollowNarration(true);
   }
 
-  const headerSpace = insets.top + READER_HEADER_EXPANDED_HEIGHT;
+  const barSpace = insets.top + READER_HEADER_HEIGHT;
 
   if (!loaded || verses.length === 0) {
     return (
-      <View style={[styles.emptyWrap, { paddingTop: headerSpace }]}>
+      <View style={[styles.emptyWrap, { paddingTop: barSpace }]}>
         <AppText dim style={{ textAlign: "center" }}>
           {`${displayRef(location.book, location.chapter, language)} ${t("isn't loaded in this build yet.")}`}
           {"\n"}
@@ -102,11 +105,16 @@ export function ReadScreen() {
   return (
     <View style={{ flex: 1 }}>
       <ScrollView
+        key={`${location.book}|${location.chapter}`}
         ref={scrollRef}
-        contentContainerStyle={[styles.content, { paddingTop: headerSpace }]}
+        contentContainerStyle={styles.content}
         onScroll={onScroll}
         scrollEventThrottle={32}
       >
+        <View style={styles.heroWrap}>
+          <LinearGradient colors={HERO_GRAD} style={StyleSheet.absoluteFill} />
+          <Image source={LOGO_HERO} style={styles.heroImage} resizeMode="cover" />
+        </View>
         {showTranslationFallbackNote ? (
           <View style={[styles.fallbackNote, { backgroundColor: palette.cardAlt }]}>
             <AppText size={12} dim style={{ lineHeight: 17, fontStyle: "italic" }}>
@@ -202,11 +210,7 @@ export function ReadScreen() {
       {prev ? (
         <Pressable
           onPress={() => goTo(prev.book, prev.chapter)}
-          style={[
-            styles.sideArrow,
-            styles.sideArrowLeft,
-            { backgroundColor: palette.cardAlt, marginTop: headerSpace / 2 - 17 },
-          ]}
+          style={[styles.sideArrow, styles.sideArrowLeft, { backgroundColor: palette.cardAlt }]}
         >
           <Ionicons name="chevron-back" size={16} color={palette.accent} />
         </Pressable>
@@ -214,11 +218,7 @@ export function ReadScreen() {
       {next ? (
         <Pressable
           onPress={() => goTo(next.book, next.chapter)}
-          style={[
-            styles.sideArrow,
-            styles.sideArrowRight,
-            { backgroundColor: palette.cardAlt, marginTop: headerSpace / 2 - 17 },
-          ]}
+          style={[styles.sideArrow, styles.sideArrowRight, { backgroundColor: palette.cardAlt }]}
         >
           <Ionicons name="chevron-forward" size={16} color={palette.accent} />
         </Pressable>
@@ -229,6 +229,13 @@ export function ReadScreen() {
 
 const styles = StyleSheet.create({
   content: { padding: 20, paddingBottom: 140 },
+  heroWrap: {
+    height: HERO_IMAGE_HEIGHT,
+    borderRadius: 22,
+    overflow: "hidden",
+    marginBottom: 16,
+  },
+  heroImage: { width: "100%", height: "100%" },
   fallbackNote: { borderRadius: 12, padding: 12, marginBottom: 12 },
   emptyWrap: { flex: 1, alignItems: "center", justifyContent: "center", padding: 40 },
   verseRow: {

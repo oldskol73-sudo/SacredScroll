@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Pressable, Modal, TextInput, StyleSheet } from "react-native";
+import { View, Pressable, Modal, TextInput, StyleSheet, KeyboardAvoidingView, Platform } from "react-native";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
 import { displayRef } from "@/constants/bible/books";
@@ -28,7 +28,10 @@ export function NoteComposer() {
 
   return (
     <Modal visible={showNoteComposer} transparent animationType="fade" onRequestClose={close}>
-      <View style={styles.overlay}>
+      <KeyboardAvoidingView
+        style={styles.overlay}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
         <View style={[styles.sheet, { backgroundColor: palette.card }]}>
           <View style={styles.headerRow}>
             <AppText variant="sansExtraBold" size={15}>
@@ -60,7 +63,7 @@ export function NoteComposer() {
             </AppText>
           </Pressable>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

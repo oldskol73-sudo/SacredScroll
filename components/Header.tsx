@@ -1,15 +1,12 @@
 import React from "react";
-import { View, Pressable, StyleSheet, Image } from "react-native";
+import { View, Pressable, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
 import { displayRef } from "@/constants/bible/books";
 import { READER_FONT_SIZES, Palette } from "@/constants/theme";
-
-const LOGO_HERO = require("@/assets/images/bible/logo-hero.jpg");
 
 const TITLE_KEYS: Record<string, string> = {
   today: "Today",
@@ -19,12 +16,15 @@ const TITLE_KEYS: Record<string, string> = {
   library: "Library",
 };
 
-const IMAGE_HEIGHT = 168;
-const FOOTER_HEIGHT = 110;
-export const READER_HEADER_EXPANDED_HEIGHT = IMAGE_HEIGHT + FOOTER_HEIGHT;
-export const READER_HEADER_COLLAPSED_HEIGHT = 60;
-const EXPANDED_HEIGHT = READER_HEADER_EXPANDED_HEIGHT;
-const COLLAPSED_HEIGHT = READER_HEADER_COLLAPSED_HEIGHT;
+// The Read tab's hero image now scrolls away as part of the chapter content
+// (see ReadScreen) instead of collapsing in place, so this bar's height is
+// the one constant amount of space it always reserves at the top.
+export const READER_HEADER_HEIGHT = 60;
+
+// A dark scrim matching the hero image's own brand gradient, fading out toward
+// the bottom edge so the bar reads as part of the image instead of a blur
+// artifact sitting on top of it.
+const BAR_GRAD: [string, string] = ["rgba(20,13,8,.65)", "rgba(20,13,8,.15)"];
 
 export function Header() {
   const {
@@ -38,76 +38,42 @@ export function Header() {
     playChapter,
     narration,
     setTab,
-    readerHeaderCollapsed,
     language,
     t,
   } = useApp();
   const insets = useSafeAreaInsets();
 
   if (tab === "read") {
-    const collapsed = readerHeaderCollapsed;
     const isCurrentTrack = narration.book === location.book && narration.chapter === location.chapter;
     const isPlayingHere = isCurrentTrack && narration.status === "playing";
-    const heroHeight = insets.top + (collapsed ? COLLAPSED_HEIGHT : EXPANDED_HEIGHT);
-
-    if (collapsed) {
-      return (
-        <View style={[styles.heroBand, styles.floating, styles.glassBand, { height: heroHeight }]}>
-          <BlurView intensity={55} tint="light" style={StyleSheet.absoluteFill} />
-          <View style={[styles.glassRow, { paddingTop: insets.top + 8 }]}>
-            <View style={styles.iconGroup}>
-              <IconBtn solid palette={palette} onPress={() => setReaderFontSize(nextFontSize(readerFontSize))} label="Aa" />
-              <IconBtn solid palette={palette} onPress={cycleAtmosphere} icon="contrast-outline" />
-            </View>
-
-            <Pressable
-              onPress={() => setShowBookPicker(true)}
-              style={[styles.chapterBtn, { backgroundColor: palette.card, borderColor: palette.accent }]}
-            >
-              <AppText variant="serifBold" size={14} color={palette.text}>
-                {displayRef(location.book, location.chapter, language)}
-              </AppText>
-              <Ionicons name="chevron-down" size={10} color={palette.accent} />
-            </Pressable>
-
-            <View style={styles.iconGroup}>
-              <IconBtn
-                solid
-                palette={palette}
-                onPress={() => (isCurrentTrack ? narration.togglePlayPause() : playChapter(location.book, location.chapter))}
-                icon={isPlayingHere ? "pause" : "headset"}
-              />
-              <IconBtn solid palette={palette} onPress={() => setTab("search")} icon="search" />
-            </View>
-          </View>
-        </View>
-      );
-    }
+    const barHeight = insets.top + READER_HEADER_HEIGHT;
 
     return (
-      <View style={[styles.heroBand, styles.floating, { height: heroHeight }]}>
-        <View style={[styles.heroImageWrap, { height: insets.top + IMAGE_HEIGHT }]}>
-          <LinearGradient colors={ATMOSPHERE_GRAD} style={StyleSheet.absoluteFill} />
-          <Image source={LOGO_HERO} style={styles.heroImage} resizeMode="cover" />
-          <LinearGradient colors={["rgba(0,0,0,.35)", "rgba(0,0,0,0)"]} style={styles.heroTopScrim} />
-        </View>
-
-        <View style={[styles.heroFooter, { height: FOOTER_HEIGHT, paddingTop: 10 }]}>
-          <View style={[styles.pillRow, { justifyContent: "center" }]}>
-            <Pressable
-              onPress={() => setShowBookPicker(true)}
-              style={[styles.chapterBtn, { backgroundColor: palette.card, borderColor: palette.accent }]}
-            >
-              <AppText variant="serifBold" size={15} color={palette.text}>
-                {displayRef(location.book, location.chapter, language)}
-              </AppText>
-              <Ionicons name="chevron-down" size={11} color={palette.accent} />
-            </Pressable>
-          </View>
-
-          <View style={[styles.expandedIconRow, { marginTop: 10 }]}>
+      <View style={[styles.heroBand, styles.floating, styles.glassBand, { height: barHeight }]}>
+        <LinearGradient colors={BAR_GRAD} style={StyleSheet.absoluteFill} />
+        <View style={[styles.glassRow, { paddingTop: insets.top + 8 }]}>
+          <View style={styles.iconGroup}>
             <IconBtn solid palette={palette} onPress={() => setReaderFontSize(nextFontSize(readerFontSize))} label="Aa" />
             <IconBtn solid palette={palette} onPress={cycleAtmosphere} icon="contrast-outline" />
+          </View>
+
+          <Pressable
+            onPress={() => setShowBookPicker(true)}
+            style={[styles.chapterBtn, { backgroundColor: palette.card, borderColor: palette.accent }]}
+          >
+            <AppText
+              variant="serifBold"
+              size={14}
+              color={palette.text}
+              numberOfLines={1}
+              style={styles.chapterBtnText}
+            >
+              {displayRef(location.book, location.chapter, language)}
+            </AppText>
+            <Ionicons name="chevron-down" size={10} color={palette.accent} />
+          </Pressable>
+
+          <View style={styles.iconGroup}>
             <IconBtn
               solid
               palette={palette}
@@ -164,10 +130,6 @@ function nextFontSize(current: number) {
   return READER_FONT_SIZES[(idx + 1) % READER_FONT_SIZES.length];
 }
 
-// The hero band always uses the brand's dark gradient regardless of atmosphere,
-// matching the source design's constant headerGrad treatment.
-const ATMOSPHERE_GRAD: [string, string] = ["#23160E", "#4B3626"];
-
 const styles = StyleSheet.create({
   heroBand: {
     flexShrink: 0,
@@ -191,43 +153,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 14,
   },
-  heroImageWrap: {
-    width: "100%",
-    overflow: "hidden",
-    borderBottomLeftRadius: 26,
-    borderBottomRightRadius: 26,
-  },
-  heroImage: {
-    width: "100%",
-    height: "100%",
-  },
-  heroTopScrim: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 56,
-  },
-  heroFooter: {
-    paddingHorizontal: 18,
-    paddingBottom: 14,
-  },
-  pillRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    height: 40,
-  },
   iconGroup: {
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
-  },
-  expandedIconRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 22,
-    marginTop: 12,
+    flexShrink: 0,
   },
   iconBtn: {
     width: 30,
@@ -256,6 +186,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 5,
     paddingHorizontal: 13,
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  chapterBtnText: {
+    flexShrink: 1,
   },
   simpleHeader: {
     flexShrink: 0,

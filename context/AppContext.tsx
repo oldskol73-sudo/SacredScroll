@@ -54,9 +54,6 @@ interface AppContextValue {
   openFootnote: number | null;
   toggleFootnote: (n: number) => void;
 
-  readerHeaderCollapsed: boolean;
-  onReaderScroll: (scrollY: number) => void;
-
   showDrawer: boolean;
   setShowDrawer: (v: boolean) => void;
   showBookPicker: boolean;
@@ -126,7 +123,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useState<Location>({ book: "Deuteronomy", chapter: 28 });
   const [selectedVerse, setSelectedVerse] = useState<number | null>(null);
   const [openFootnote, setOpenFootnote] = useState<number | null>(null);
-  const [readerHeaderCollapsed, setReaderHeaderCollapsed] = useState(false);
 
   const [showDrawer, setShowDrawer] = useState(false);
   const [showBookPicker, setShowBookPicker] = useState(false);
@@ -192,13 +188,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setOpenFootnote((cur) => (cur === n ? null : n));
   }, []);
 
-  const onReaderScroll = useCallback((scrollY: number) => {
-    setReaderHeaderCollapsed((cur) => {
-      const collapsed = scrollY > 40;
-      return collapsed !== cur ? collapsed : cur;
-    });
-  }, []);
-
   const playChapter = useCallback(
     (book: string, chapter: number) => {
       narration.playChapter(book, chapter);
@@ -234,8 +223,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       selectVerse,
       openFootnote,
       toggleFootnote,
-      readerHeaderCollapsed,
-      onReaderScroll,
       showDrawer,
       setShowDrawer,
       showBookPicker,
@@ -297,8 +284,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       selectVerse,
       openFootnote,
       toggleFootnote,
-      readerHeaderCollapsed,
-      onReaderScroll,
       showDrawer,
       showBookPicker,
       showNoteComposer,
