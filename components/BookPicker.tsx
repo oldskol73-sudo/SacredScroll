@@ -7,12 +7,17 @@ import { AppText } from "@/components/AppText";
 import { BOOKS_PICKER, isChapterLoaded, bookLabel, sectionLabel, BookInfo } from "@/constants/bible/books";
 
 export function BookPicker() {
-  const { palette, showBookPicker, setShowBookPicker, goTo, showToast, language, t } = useApp();
+  const { palette, showBookPicker, setShowBookPicker, goTo, goToDesk, showToast, language, t } = useApp();
   const [pickerBook, setPickerBook] = useState<BookInfo | null>(null);
 
   function close() {
     setShowBookPicker(false);
     setPickerBook(null);
+  }
+
+  function goHome() {
+    close();
+    goToDesk();
   }
 
   function onPickBook(book: BookInfo) {
@@ -46,8 +51,8 @@ export function BookPicker() {
               {pickerBook ? bookLabel(pickerBook.name, language) : t("Books")}
             </AppText>
           </View>
-          <Pressable onPress={close} style={[styles.roundBtn, { backgroundColor: palette.track }]}>
-            <AppText size={14}>⌄</AppText>
+          <Pressable onPress={goHome} style={[styles.roundBtn, { backgroundColor: palette.track }]}>
+            <Ionicons name="home" size={16} color={palette.text} />
           </Pressable>
         </View>
 

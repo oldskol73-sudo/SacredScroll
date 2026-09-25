@@ -1,13 +1,25 @@
 import React from "react";
 import { View, Pressable, Modal, StyleSheet, Share } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import * as Clipboard from "expo-clipboard";
 import { Ionicons } from "@expo/vector-icons";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
 import { HIGHLIGHT_COLORS, HIGHLIGHT_SWATCH_ORDER, HighlightColorKey } from "@/constants/theme";
 import { versesFor } from "@/constants/bible/verses";
 import { displayRef } from "@/constants/bible/books";
+
+// expo-clipboard throws at require() time when its native module isn't
+// present in the running binary (same failure mode as expo-speech elsewhere
+// in this app). A plain top-level `import` would crash the whole app on
+// launch since this bar is mounted unconditionally in AppShell; routing it
+// through require() inside try/catch lets that failure degrade to a
+// "Copy unavailable" toast instead.
+let Clipboard: typeof import("expo-clipboard") | null;
+try {
+  Clipboard = require("expo-clipboard");
+} catch {
+  Clipboard = null;
+}
 
 export function VerseActionBar() {
   const {
@@ -47,6 +59,10 @@ export function VerseActionBar() {
 
   async function onCopy() {
     if (!verse) return;
+    if (!Clipboard) {
+      showToast(t("Copy unavailable on this build"));
+      return;
+    }
     await Clipboard.setStringAsync(`"${verse.text}" — ${displayRef(location.book, location.chapter, language)}:${verse.n}`);
     showToast(t("Copied to clipboard"));
   }

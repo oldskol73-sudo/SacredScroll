@@ -34,9 +34,8 @@ function parseRef(ref: string): { book: string; chapter: number; verse: number }
 
 export function PreceptsOverlay() {
   const { palette, showPrecepts, setShowPrecepts, goTo, selectVerse, t } = useApp();
-  const [expandedTopic, setExpandedTopic] = useState<string | null>(null);
   const [expandedLetter, setExpandedLetter] = useState<string | null>(null);
-  const [selectedFeatured, setSelectedFeatured] = useState<PreceptTopic | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState<PreceptTopic | null>(null);
 
   const featuredGroups = useMemo(() => {
     const featured = PRECEPT_TOPICS.slice(0, FEATURED_COUNT);
@@ -65,18 +64,17 @@ export function PreceptsOverlay() {
       }));
   }, []);
 
-  // FeaturedTopicSheet is a Modal NESTED inside this component's own Modal.
+  // TopicSheet is a Modal NESTED inside this component's own Modal.
   // Confirmed on-device: dismissing a nested Modal and its parent Modal in the
   // same tick (even via two separate setState calls, since React batches them
   // into one commit) strands the screen on a black, undismissable overlay on
   // iOS -- the two native dismissals collide. A single (non-nested) Modal
   // closing alongside goTo()/selectVerse is safe on its own (proven by the
-  // Book Picker and the plain A-Z topic list, which do exactly that). So the
-  // nested sheet must fully close BEFORE the outer Modal starts closing --
-  // never in the same render.
+  // Book Picker). So the nested sheet must fully close BEFORE the outer Modal
+  // starts closing -- never in the same render.
   function closePrecepts() {
-    if (selectedFeatured) {
-      setSelectedFeatured(null);
+    if (selectedTopic) {
+      setSelectedTopic(null);
       setTimeout(() => setShowPrecepts(false), 350);
     } else {
       setShowPrecepts(false);
@@ -132,7 +130,7 @@ export function PreceptsOverlay() {
               </AppText>
               <View style={styles.grid}>
                 {group.topics.map((topic) => (
-                  <FeaturedTile key={topic.key} topic={topic} palette={palette} onPress={() => setSelectedFeatured(topic)} />
+                  <FeaturedTile key={topic.key} topic={topic} palette={palette} onPress={() => setSelectedTopic(topic)} />
                 ))}
               </View>
             </View>
@@ -166,16 +164,7 @@ export function PreceptsOverlay() {
                   {isLetterExpanded ? (
                     <View style={{ gap: 8, marginTop: 8 }}>
                       {topics.map((topic) => (
-                        <TopicCard
-                          key={topic.key}
-                          topic={topic}
-                          palette={palette}
-                          t={t}
-                          expanded={expandedTopic === topic.key}
-                          onToggle={() => setExpandedTopic(expandedTopic === topic.key ? null : topic.key)}
-                          onViewRef={onViewRef}
-                          onViewInReader={onViewInReader}
-                        />
+                        <TopicRow key={topic.key} topic={topic} palette={palette} onPress={() => setSelectedTopic(topic)} />
                       ))}
                     </View>
                   ) : null}
@@ -186,11 +175,11 @@ export function PreceptsOverlay() {
         </ScrollView>
       </OverlaySafeArea>
 
-      <FeaturedTopicSheet
-        topic={selectedFeatured}
+      <TopicSheet
+        topic={selectedTopic}
         palette={palette}
         t={t}
-        onClose={() => setSelectedFeatured(null)}
+        onClose={() => setSelectedTopic(null)}
         onViewRef={onViewRef}
         onViewInReader={onViewInReader}
       />
@@ -213,7 +202,7 @@ function FeaturedTile({ topic, palette, onPress }: { topic: PreceptTopic; palett
   );
 }
 
-function FeaturedTopicSheet({
+function TopicSheet({
   topic,
   palette,
   t,
@@ -261,57 +250,19 @@ function FeaturedTopicSheet({
   );
 }
 
-function TopicCard({
-  topic,
-  palette,
-  t,
-  expanded,
-  onToggle,
-  onViewRef,
-  onViewInReader,
-}: {
-  topic: PreceptTopic;
-  palette: Palette;
-  t: (s: string) => string;
-  expanded: boolean;
-  onToggle: () => void;
-  onViewRef: (ref: string) => void;
-  onViewInReader: (anchor: { book: string; chapter: number }) => void;
-}) {
+function TopicRow({ topic, palette, onPress }: { topic: PreceptTopic; palette: Palette; onPress: () => void }) {
   return (
-    <View style={[styles.card, { backgroundColor: palette.card }]}>
-      <Pressable onPress={onToggle} style={styles.rowBetween}>
-        <AppText variant="sansBold" size={15}>
-          {topic.title}
-        </AppText>
-        <AppText dim size={13}>
-          {expanded ? "⌃" : "⌄"}
-        </AppText>
-      </Pressable>
-      {expanded ? (
-        <View style={{ gap: 8, paddingTop: 4 }}>
-          {topic.refs.map((r) => (
-            <Pressable
-              key={r.ref}
-              onPress={() => onViewRef(r.ref)}
-              style={[styles.refCard, { backgroundColor: palette.cardAlt }]}
-            >
-              <AppText variant="sansExtraBold" size={12} color={palette.accent} style={{ marginBottom: 3 }}>
-                {r.ref}
-              </AppText>
-              <AppText size={13} style={{ lineHeight: 19 }}>
-                {r.note}
-              </AppText>
-            </Pressable>
-          ))}
-          <Pressable onPress={() => onViewInReader(topic.anchor)} style={[styles.viewBtn, { backgroundColor: palette.accent }]}>
-            <AppText variant="sansBold" size={12} color="#fff">
-              {t("View in Reader")}
-            </AppText>
-          </Pressable>
-        </View>
-      ) : null}
-    </View>
+    <Pressable
+      onPress={onPress}
+      style={[styles.topicRow, { backgroundColor: palette.card }]}
+      accessibilityRole="button"
+      accessibilityLabel={topic.title}
+    >
+      <AppText variant="sansBold" size={14.5} style={{ flex: 1 }}>
+        {topic.title}
+      </AppText>
+      <Ionicons name="chevron-forward" size={16} color={palette.accent} />
+    </Pressable>
   );
 }
 
@@ -320,11 +271,10 @@ const styles = StyleSheet.create({
   content: { paddingTop: 16, paddingHorizontal: 20, paddingBottom: 30 },
   headerRow: { flexDirection: "row", alignItems: "center", gap: 14 },
   backBtn: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
-  card: { borderRadius: 14, padding: 16, gap: 12 },
-  rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   refCard: { borderRadius: 12, padding: 11 },
   viewBtn: { alignSelf: "flex-start", borderRadius: 10, paddingVertical: 9, paddingHorizontal: 16, marginTop: 2 },
   letterRow: { flexDirection: "row", alignItems: "center", borderRadius: 14, padding: 14 },
+  topicRow: { flexDirection: "row", alignItems: "center", borderRadius: 12, padding: 14, gap: 10 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   tile: {
     width: "47%",

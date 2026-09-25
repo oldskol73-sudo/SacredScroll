@@ -2,12 +2,29 @@ import React from "react";
 import { View, Modal, Pressable, ScrollView, StyleSheet, Linking } from "react-native";
 import { OverlaySafeArea } from "@/components/OverlaySafeArea";
 import { Ionicons } from "@expo/vector-icons";
-import * as DocumentPicker from "expo-document-picker";
-import * as StoreReview from "expo-store-review";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
 import { displayRef } from "@/constants/bible/books";
 import { READER_FONT_SIZES, ATMOSPHERES, ATMOSPHERE_ORDER } from "@/constants/theme";
+
+// expo-store-review and expo-document-picker both throw at require() time
+// when their native module isn't present in the running binary (same failure
+// mode as expo-speech elsewhere in this app). A plain top-level `import`
+// would crash the whole app on launch since this overlay is mounted
+// unconditionally in AppShell; routing them through require() inside
+// try/catch lets that failure degrade to a toast instead.
+let StoreReview: typeof import("expo-store-review") | null;
+try {
+  StoreReview = require("expo-store-review");
+} catch {
+  StoreReview = null;
+}
+let DocumentPicker: typeof import("expo-document-picker") | null;
+try {
+  DocumentPicker = require("expo-document-picker");
+} catch {
+  DocumentPicker = null;
+}
 
 export function SettingsOverlay() {
   const {
@@ -36,6 +53,10 @@ export function SettingsOverlay() {
   const narration = narrations.narrationFor(location.book, location.chapter);
 
   async function onUpload() {
+    if (!DocumentPicker) {
+      showToast(t("Upload unavailable on this build"));
+      return;
+    }
     const result = await DocumentPicker.getDocumentAsync({ type: "audio/*" });
     if (result.canceled || !result.assets?.[0]) return;
     const asset = result.assets[0];
@@ -62,7 +83,7 @@ export function SettingsOverlay() {
   }
 
   async function onRateUs() {
-    if (await StoreReview.hasAction()) {
+    if (StoreReview && (await StoreReview.hasAction())) {
       StoreReview.requestReview();
     } else {
       showToast(t("Coming soon"));
