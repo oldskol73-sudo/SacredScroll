@@ -40,6 +40,7 @@
 //    the traditional Hebrew/Babylonian names (Nisan, Iyar, ...), matching
 //    how the Torah itself refers to them (e.g. Exodus 12:2).
 import { dateToJD, firstFullMoonAtOrAfter, jdToDate, marchEquinoxJD } from "./astro";
+import { overrideNewMoonDate } from "./newMoons";
 
 export type FeastKey =
   | "passover"
@@ -48,7 +49,6 @@ export type FeastKey =
   | "trumpets"
   | "atonement"
   | "tabernacles"
-  | "eighthDay"
   | "pentecost"
   | "dedication"
   | "nicanor"
@@ -62,7 +62,6 @@ export const FEAST_LABELS: Record<FeastKey, string> = {
   trumpets: "Trumpets",
   atonement: "Day of Atonement",
   tabernacles: "Tabernacles",
-  eighthDay: "Tabernacles — Eighth Day",
   dedication: "Feast of Dedication (Hanukkah)",
   nicanor: "Destruction of Nicanor",
   purim: "Purim",
@@ -112,7 +111,9 @@ function addDays(date: Date, days: number): Date {
  * the day beginning at the sundown that follows the full moon, labeled by
  * the date of its daylight (see the file header comment). */
 function monthStartFromFullMoonJD(fullMoonJD: number): Date {
-  return addDays(localCalendarDate(jdToDate(fullMoonJD)), 1);
+  const computed = localCalendarDate(jdToDate(fullMoonJD));
+  // The hand-entered new moon list (newMoons.ts) wins over the calculation.
+  return addDays(overrideNewMoonDate(computed) ?? computed, 1);
 }
 
 /** Calendar date of the start of the reckoning year beginning at the first
@@ -144,8 +145,9 @@ function feastFor(month: number, day: number): FeastKey | null {
   if (month === 7) {
     if (day === 1) return "trumpets";
     if (day === 10) return "atonement";
-    if (day >= 15 && day <= 21) return "tabernacles";
-    if (day === 22) return "eighthDay";
+    // Opens at the sundown that ends Day 15 and closes at the sundown that
+    // ends Day 22 (the eighth day) — one feast, Days 16-22.
+    if (day >= 16 && day <= 22) return "tabernacles";
   }
   return null;
 }

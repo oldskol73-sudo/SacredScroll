@@ -52,12 +52,8 @@ export const FEAST_SCRIPTURE: Record<FeastKey, ScriptureNote> = {
     note: "a sabbath of rest unto you, and ye shall afflict your souls",
   },
   tabernacles: {
-    ref: "Leviticus 23:34",
-    note: "the fifteenth day of the seventh month",
-  },
-  eighthDay: {
-    ref: "Leviticus 23:36",
-    note: "the eighth day shall be a holy convocation, a solemn assembly",
+    ref: "Leviticus 23:34-36",
+    note: "the fifteenth day of the seventh month, and the eighth day a solemn assembly",
   },
   dedication: {
     ref: "2 Maccabees 1:18; 10:5-6",
@@ -85,7 +81,6 @@ export const FEAST_PRECEPT_TOPIC_KEYS: Record<FeastKey, string> = {
   trumpets: "high-holy-days-memorial-of-blowing-of-trumpets",
   atonement: "high-holy-days-day-of-atonement",
   tabernacles: "high-holy-days-feast-of-tabernacles",
-  eighthDay: "high-holy-days-feast-of-tabernacles",
   dedication: "high-holy-days-feast-of-dedication",
   nicanor: "destruction-of-nicanor",
   purim: "high-holy-days-purim",
