@@ -14,7 +14,7 @@ import {
   SABBATH_SCRIPTURE,
   ScriptureNote,
 } from "@/constants/calendar/feastScripture";
-import { FEAST_COLORS } from "@/constants/calendar/feastColors";
+import { feastColor } from "@/constants/calendar/feastColors";
 import { CalendarEvent, monthEvents } from "@/constants/calendar/calendarEvents";
 import { PRECEPT_TOPICS } from "@/constants/bible/precepts";
 
@@ -167,7 +167,7 @@ function MiniGrid({ year, month, marks, todayKey }: { year: number; month: numbe
             // Hanukkah days that are also the weekly Sabbath: diagonal, Hanukkah
             // color above the line and Sabbath color below it.
             const hanukkahSabbath = feast === "dedication" && !!mark?.isSabbath;
-            const bg = feast ? FEAST_COLORS[feast] : mark?.isSabbath ? palette.accent : "transparent";
+            const bg = feast ? feastColor(palette.key, feast) : mark?.isSabbath ? palette.accent : "transparent";
             const fg = feast || mark?.isSabbath ? "#fff" : palette.text;
             return (
               <View key={i} style={styles.miniCell}>
@@ -175,7 +175,7 @@ function MiniGrid({ year, month, marks, todayKey }: { year: number; month: numbe
                   {hanukkahSabbath ? (
                     <LinearGradient
                       pointerEvents="none"
-                      colors={[FEAST_COLORS.dedication, FEAST_COLORS.dedication, palette.accent, palette.accent]}
+                      colors={[feastColor(palette.key, "dedication"), feastColor(palette.key, "dedication"), palette.accent, palette.accent]}
                       locations={[0, 0.5, 0.5, 1]}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}
@@ -184,8 +184,8 @@ function MiniGrid({ year, month, marks, todayKey }: { year: number; month: numbe
                   ) : null}
                   {feast && nextFeast ? (
                     <View style={styles.miniSplit} pointerEvents="none">
-                      <View style={{ flex: 1, backgroundColor: FEAST_COLORS[feast] }} />
-                      <View style={{ flex: 1, backgroundColor: FEAST_COLORS[nextFeast] }} />
+                      <View style={{ flex: 1, backgroundColor: feastColor(palette.key, feast) }} />
+                      <View style={{ flex: 1, backgroundColor: feastColor(palette.key, nextFeast) }} />
                     </View>
                   ) : null}
                   {mark?.isNewMoon ? (
@@ -212,7 +212,7 @@ function EventCard({ event, onLearnMore }: { event: CalendarEvent; onLearnMore: 
   const heading = rangeHeading(event);
   const title = eventTitle(event);
   const scripture = eventScripture(event);
-  const color = event.kind === "feast" && event.feast ? FEAST_COLORS[event.feast] : event.kind === "sabbath" ? palette.accent : palette.cardAlt;
+  const color = event.kind === "feast" && event.feast ? feastColor(palette.key, event.feast) : event.kind === "sabbath" ? palette.accent : palette.cardAlt;
   const beginsEve = new Date(event.startDate.getFullYear(), event.startDate.getMonth(), event.startDate.getDate() - 1);
 
   return (

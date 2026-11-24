@@ -6,7 +6,7 @@ import { AppText } from "@/components/AppText";
 import { getRandomVerse } from "@/constants/bible/verses";
 import { displayRef } from "@/constants/bible/books";
 import { DayMark, FEAST_LABELS, lunarMarksForGregorianYear } from "@/constants/calendar/lunarYear";
-import { FEAST_COLORS } from "@/constants/calendar/feastColors";
+import { feastColor } from "@/constants/calendar/feastColors";
 import { monthEvents } from "@/constants/calendar/calendarEvents";
 import { CHRONO_PLAN } from "@/constants/bible/plans";
 import { PRECEPT_TOPICS } from "@/constants/bible/precepts";
@@ -108,7 +108,7 @@ export function DeskScreen() {
   const feastLeft = useMemo(() => feastLeftThisMonth(), []);
   const adKey = useAdRotation();
   const ad = ADS[adKey];
-  const lunarColor = lunarToday?.feast ? FEAST_COLORS[lunarToday.feast] : palette.accent;
+  const lunarColor = lunarToday?.feast ? feastColor(palette.key, lunarToday.feast) : palette.accent;
   const lunarStatus = lunarToday?.feast
     ? t(FEAST_LABELS[lunarToday.feast])
     : lunarToday?.isSabbath
