@@ -169,7 +169,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const [showPlayer, setShowPlayer] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
-  const isPremium = settings.premiumUnlocked;
+  // The iOS app is a one-time paid download, so every feature is unlocked from
+  // the first launch — nothing is gated and the paywall never opens.
+  const isPremium = true;
   const requirePremium = useCallback(
     (action: () => void) => {
       if (isPremium) action();
