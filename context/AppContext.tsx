@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useState, useCallback, useRef } from "react";
+import React, { createContext, useContext, useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { useGuestAuth } from "@/hooks/useGuestAuth";
 import {
   useSettings,
@@ -13,8 +13,15 @@ import { useBibleNarration } from "@/hooks/useBibleNarration";
 import { ATMOSPHERES, AtmosphereKey, Palette, HighlightColorKey } from "@/constants/theme";
 import { Language, translate } from "@/constants/i18n";
 import { setBibleLanguage } from "@/constants/bible/verses";
+import type { PreceptTopic } from "@/constants/bible/precepts";
 
-export type TabKey = "today" | "read" | "search" | "plans" | "library";
+export type TabKey = "today" | "read" | "search" | "plans" | "library" | "calendar";
+
+/** Opens the Precepts page on the topics anchored at a Reader verse. */
+export interface PreceptFocus {
+  verseRef: string;
+  topics: PreceptTopic[];
+}
 
 export interface Location {
   book: string;
@@ -33,6 +40,8 @@ interface AppContextValue {
   setReaderFontSize: (n: number) => void;
   notificationsOn: boolean;
   toggleNotifications: () => void;
+  redLetterEnabled: boolean;
+  toggleRedLetter: () => void;
   language: Language;
   setLanguage: (lang: Language) => void;
   t: (s: string) => string;
@@ -41,6 +50,7 @@ interface AppContextValue {
   goToDesk: () => void;
   enterContinueReading: () => void;
   goToPlans: () => void;
+  goToCalendar: () => void;
 
   tab: TabKey;
   setTab: (t: TabKey) => void;
@@ -51,8 +61,15 @@ interface AppContextValue {
   selectedVerse: number | null;
   selectVerse: (n: number | null) => void;
 
-  openFootnote: number | null;
-  toggleFootnote: (n: number) => void;
+  /** Verses picked in the Reader's multi-select mode; null when the mode is off. */
+  multiVerses: number[] | null;
+  startMultiSelect: (first: number) => void;
+  toggleMultiVerse: (n: number) => void;
+  endMultiSelect: () => void;
+
+  preceptFocus: PreceptFocus | null;
+  setPreceptFocus: (f: PreceptFocus | null) => void;
+  openPrecepts: (focus?: PreceptFocus) => void;
 
   showDrawer: boolean;
   setShowDrawer: (v: boolean) => void;
@@ -99,6 +116,17 @@ interface AppContextValue {
   playChapter: (book: string, chapter: number) => void;
   showPlayer: boolean;
   setShowPlayer: (v: boolean) => void;
+
+  showOnboarding: boolean;
+  dismissOnboarding: () => void;
+  replayOnboarding: () => void;
+
+  isPremium: boolean;
+  unlockPremium: () => void;
+  showPaywall: boolean;
+  setShowPaywall: (v: boolean) => void;
+  /** Runs `action` if premium is unlocked, otherwise opens the paywall. */
+  requirePremium: (action: () => void) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -122,7 +150,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [tab, setTab] = useState<TabKey>("today");
   const [location, setLocation] = useState<Location>({ book: "Deuteronomy", chapter: 28 });
   const [selectedVerse, setSelectedVerse] = useState<number | null>(null);
-  const [openFootnote, setOpenFootnote] = useState<number | null>(null);
+  const [multiVerses, setMultiVerses] = useState<number[] | null>(null);
+  const [preceptFocus, setPreceptFocus] = useState<PreceptFocus | null>(null);
 
   const [showDrawer, setShowDrawer] = useState(false);
   const [showBookPicker, setShowBookPicker] = useState(false);
@@ -139,6 +168,34 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [showWeeklyStudy, setShowWeeklyStudy] = useState(false);
 
   const [showPlayer, setShowPlayer] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const isPremium = settings.premiumUnlocked;
+  const requirePremium = useCallback(
+    (action: () => void) => {
+      if (isPremium) action();
+      else setShowPaywall(true);
+    },
+    [isPremium]
+  );
+
+  // Shown once, automatically, the first time settings finish loading and the
+  // guest's own saved settings row says they haven't seen it yet.
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const onboardingChecked = useRef(false);
+  useEffect(() => {
+    if (onboardingChecked.current || authLoading || settings.isLoading || !userId) return;
+    onboardingChecked.current = true;
+    if (!settings.hasSeenOnboarding) setShowOnboarding(true);
+  }, [authLoading, settings.isLoading, settings.hasSeenOnboarding, userId]);
+
+  function dismissOnboarding() {
+    setShowOnboarding(false);
+    settings.completeOnboarding();
+  }
+  function replayOnboarding() {
+    setShowSettings(false);
+    setShowOnboarding(true);
+  }
 
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -172,20 +229,42 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setTab("plans");
   }, []);
 
+  const goToCalendar = useCallback(() => {
+    setDesk(false);
+    setTab("calendar");
+  }, []);
+
   const goTo = useCallback((book: string, chapter: number) => {
     setDesk(false);
     setLocation({ book, chapter });
     setTab("read");
     setSelectedVerse(null);
-    setOpenFootnote(null);
+    setMultiVerses(null);
   }, []);
 
   const selectVerse = useCallback((n: number | null) => {
     setSelectedVerse(n);
   }, []);
 
-  const toggleFootnote = useCallback((n: number) => {
-    setOpenFootnote((cur) => (cur === n ? null : n));
+  const startMultiSelect = useCallback((first: number) => {
+    setSelectedVerse(null);
+    setMultiVerses([first]);
+  }, []);
+
+  // Deselecting the last verse leaves the mode rather than showing an empty bar.
+  const toggleMultiVerse = useCallback((n: number) => {
+    setMultiVerses((cur) => {
+      if (!cur) return cur;
+      const next = cur.includes(n) ? cur.filter((x) => x !== n) : [...cur, n].sort((a, b) => a - b);
+      return next.length ? next : null;
+    });
+  }, []);
+
+  const endMultiSelect = useCallback(() => setMultiVerses(null), []);
+
+  const openPrecepts = useCallback((focus?: PreceptFocus) => {
+    setPreceptFocus(focus ?? null);
+    setShowPrecepts(true);
   }, []);
 
   const playChapter = useCallback(
@@ -208,6 +287,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setReaderFontSize: settings.setReaderFontSize,
       notificationsOn: settings.notificationsOn,
       toggleNotifications: settings.toggleNotifications,
+      redLetterEnabled: settings.redLetterEnabled,
+      toggleRedLetter: settings.toggleRedLetter,
       language,
       setLanguage: settings.setLanguage,
       t,
@@ -215,14 +296,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       goToDesk,
       enterContinueReading,
       goToPlans,
+      goToCalendar,
       tab,
       setTab,
       location,
       goTo,
       selectedVerse,
       selectVerse,
-      openFootnote,
-      toggleFootnote,
+      multiVerses,
+      startMultiSelect,
+      toggleMultiVerse,
+      endMultiSelect,
+      preceptFocus,
+      setPreceptFocus,
+      openPrecepts,
       showDrawer,
       setShowDrawer,
       showBookPicker,
@@ -264,6 +351,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       playChapter,
       showPlayer,
       setShowPlayer,
+      showOnboarding,
+      dismissOnboarding,
+      replayOnboarding,
+      isPremium,
+      unlockPremium: settings.unlockPremium,
+      showPaywall,
+      setShowPaywall,
+      requirePremium,
     }),
     [
       authLoading,
@@ -277,13 +372,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       goToDesk,
       enterContinueReading,
       goToPlans,
+      goToCalendar,
       tab,
       location,
       goTo,
       selectedVerse,
       selectVerse,
-      openFootnote,
-      toggleFootnote,
+      multiVerses,
+      startMultiSelect,
+      toggleMultiVerse,
+      endMultiSelect,
+      preceptFocus,
+      openPrecepts,
       showDrawer,
       showBookPicker,
       showNoteComposer,
@@ -310,6 +410,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       narration,
       playChapter,
       showPlayer,
+      showOnboarding,
+      isPremium,
+      showPaywall,
+      requirePremium,
     ]
   );
 

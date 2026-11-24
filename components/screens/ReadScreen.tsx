@@ -1,14 +1,27 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, ScrollView, Image, Pressable, StyleSheet, NativeSyntheticEvent, NativeScrollEvent, LayoutChangeEvent } from "react-native";
+import {
+  View,
+  ScrollView,
+  Image,
+  Pressable,
+  StyleSheet,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+  LayoutChangeEvent,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import * as Haptics from "expo-haptics";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
 import { versesFor, isTranslationAvailable } from "@/constants/bible/verses";
 import { displayRef, isChapterLoaded, adjacentChapter } from "@/constants/bible/books";
-import { PRECEPT_ANCHOR_INDEX } from "@/constants/bible/precepts";
-import { HIGHLIGHT_COLORS } from "@/constants/theme";
+import { PRECEPT_ANCHOR_TOPICS } from "@/constants/bible/precepts";
+import { isChristVerse } from "@/constants/bible/redLetterVerses";
+import { HIGHLIGHT_COLORS, FONTS } from "@/constants/theme";
 import { READER_HEADER_HEIGHT } from "@/components/Header";
 
 const LOGO_HERO = require("@/assets/images/bible/logo-hero.jpg");
@@ -22,17 +35,23 @@ const NARRATION_SCROLL_OFFSET = 140;
 // If the reader manually scrolls further than this from the narrated verse's
 // position, auto-follow suspends until they tap "Follow Narration" again.
 const FOLLOW_SUSPEND_THRESHOLD = 120;
+// A horizontal swipe past this distance (or flicked faster than the velocity) changes chapter.
+const SWIPE_DISTANCE = 70;
+const SWIPE_VELOCITY = 600;
 
 export function ReadScreen() {
   const {
     palette,
     location,
     selectVerse,
+    multiVerses,
+    startMultiSelect,
+    toggleMultiVerse,
     readerFontSize,
+    redLetterEnabled,
     highlights,
     refKey,
-    openFootnote,
-    toggleFootnote,
+    openPrecepts,
     goTo,
     language,
     narration,
@@ -44,12 +63,11 @@ export function ReadScreen() {
   const loaded = isChapterLoaded(location.book, location.chapter);
   const prev = adjacentChapter(location.book, location.chapter, -1);
   const next = adjacentChapter(location.book, location.chapter, 1);
-  const showTranslationFallbackNote =
-    language !== "en" && !isTranslationAvailable(location.book, location.chapter, language);
+  const showTranslationFallbackNote = language !== "en" && !isTranslationAvailable(location.book, location.chapter, language);
 
   const isNarratingChapter = narration.book === location.book && narration.chapter === location.chapter;
 
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
   const versePositions = useRef<Record<number, number>>({});
   const programmaticScroll = useRef(false);
   const [followNarration, setFollowNarration] = useState(true);
@@ -90,6 +108,27 @@ export function ReadScreen() {
 
   const barSpace = insets.top + READER_HEADER_HEIGHT;
 
+  // The text drifts a little with the finger so the swipe feels connected, then springs back.
+  const dragX = useSharedValue(0);
+  const dragStyle = useAnimatedStyle(() => ({ transform: [{ translateX: dragX.get() }] }));
+  const chapterSwipe = Gesture.Pan()
+    .enabled(!multiVerses)
+    .activeOffsetX([-25, 25])
+    .failOffsetY([-15, 15])
+    .runOnJS(true)
+    .onUpdate((e) => {
+      const target = e.translationX < 0 ? next : prev;
+      dragX.set(e.translationX * (target ? 0.35 : 0.12));
+    })
+    .onEnd((e) => {
+      dragX.set(withSpring(0, { damping: 18, stiffness: 180 }));
+      const far = Math.abs(e.translationX) > SWIPE_DISTANCE || Math.abs(e.velocityX) > SWIPE_VELOCITY;
+      const target = e.translationX < 0 ? next : prev;
+      if (!far || !target) return;
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      goTo(target.book, target.chapter);
+    });
+
   if (!loaded || verses.length === 0) {
     return (
       <View style={[styles.emptyWrap, { paddingTop: barSpace }]}>
@@ -104,94 +143,86 @@ export function ReadScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView
-        key={`${location.book}|${location.chapter}`}
-        ref={scrollRef}
-        contentContainerStyle={styles.content}
-        onScroll={onScroll}
-        scrollEventThrottle={32}
-      >
-        <View style={styles.heroWrap}>
-          <LinearGradient colors={HERO_GRAD} style={StyleSheet.absoluteFill} />
-          <Image source={LOGO_HERO} style={styles.heroImage} resizeMode="cover" />
-        </View>
-        {showTranslationFallbackNote ? (
-          <View style={[styles.fallbackNote, { backgroundColor: palette.cardAlt }]}>
-            <AppText size={12} dim style={{ lineHeight: 17, fontStyle: "italic" }}>
-              {t("This chapter's translation isn't ready yet — showing the English text.")}
-            </AppText>
-          </View>
-        ) : null}
-        {verses.map((v) => {
-          const ref = refKey(location.book, location.chapter, v.n);
-          const displayVerseRef = `${displayRef(location.book, location.chapter)}:${v.n}`;
-          const highlight = highlights.highlightFor(ref);
-          const topic = PRECEPT_ANCHOR_INDEX[displayVerseRef];
-          const footnoteOpen = openFootnote === v.n;
-          const isNarratingVerse = isNarratingChapter && narration.verse === v.n;
-
-          function onLayout(e: LayoutChangeEvent) {
-            versePositions.current[v.n] = e.nativeEvent.layout.y;
-          }
-
-          return (
-            <View key={v.n} style={{ position: "relative" }} onLayout={onLayout}>
-              <Pressable
-                onPress={() => selectVerse(v.n)}
-                style={[
-                  styles.verseRow,
-                  {
-                    backgroundColor: isNarratingVerse
-                      ? palette.gold + "2E"
-                      : highlight
-                        ? HIGHLIGHT_COLORS[highlight.color as keyof typeof HIGHLIGHT_COLORS] + "33"
-                        : "transparent",
-                    borderLeftWidth: isNarratingVerse ? 3 : 0,
-                    borderLeftColor: palette.accent,
-                  },
-                ]}
-              >
-                <AppText variant="sansExtraBold" size={11} color={palette.accent} style={styles.verseNum}>
-                  {v.n}
-                </AppText>
-                <AppText variant="serif" size={readerFontSize} style={{ flex: 1, lineHeight: readerFontSize * 1.7 }}>
-                  {v.text}
-                  {topic ? (
-                    <AppText
-                      variant="sansExtraBold"
-                      size={readerFontSize * 0.6}
-                      color={palette.accent}
-                      onPress={() => toggleFootnote(v.n)}
-                    >
-                      {" "}
-                      ¹
-                    </AppText>
-                  ) : null}
-                </AppText>
-              </Pressable>
-
-              {footnoteOpen && topic ? (
-                <View style={[styles.footnote, { backgroundColor: palette.card }]}>
-                  <AppText variant="sansExtraBold" size={11} color={palette.accent} style={{ letterSpacing: 0.5, marginBottom: 8 }}>
-                    {topic.title.toUpperCase()}
-                  </AppText>
-                  {topic.refs.map((r) => (
-                    <View key={r.ref} style={{ marginBottom: 6, flexDirection: "row", flexWrap: "wrap" }}>
-                      <AppText variant="sansExtraBold" size={12}>
-                        {r.ref}
-                      </AppText>
-                      <AppText size={12} dim>
-                        {" "}
-                        — {r.note}
-                      </AppText>
-                    </View>
-                  ))}
-                </View>
-              ) : null}
+      <GestureDetector gesture={chapterSwipe}>
+        <Animated.View style={[{ flex: 1 }, dragStyle]}>
+          <ScrollView
+            key={`${location.book}|${location.chapter}`}
+            ref={scrollRef}
+            contentContainerStyle={styles.content}
+            onScroll={onScroll}
+            scrollEventThrottle={32}
+          >
+            <View style={styles.heroWrap}>
+              <LinearGradient colors={HERO_GRAD} style={StyleSheet.absoluteFill} />
+              <Image source={LOGO_HERO} style={styles.heroImage} resizeMode="cover" />
             </View>
-          );
-        })}
-      </ScrollView>
+            {showTranslationFallbackNote ? (
+              <View style={[styles.fallbackNote, { backgroundColor: palette.cardAlt }]}>
+                <AppText size={12} dim style={{ lineHeight: 17, fontStyle: "italic" }}>
+                  {t("This chapter's translation isn't ready yet — showing the English text.")}
+                </AppText>
+              </View>
+            ) : null}
+            {verses.map((v) => {
+              const ref = refKey(location.book, location.chapter, v.n);
+              const displayVerseRef = `${displayRef(location.book, location.chapter)}:${v.n}`;
+              const highlight = highlights.highlightFor(ref);
+              const topics = PRECEPT_ANCHOR_TOPICS[displayVerseRef];
+              const isNarratingVerse = isNarratingChapter && narration.verse === v.n;
+              const isMultiSelected = !!multiVerses?.includes(v.n);
+              const isRedLetter = redLetterEnabled && isChristVerse(ref);
+
+              function onLayout(e: LayoutChangeEvent) {
+                versePositions.current[v.n] = e.nativeEvent.layout.y;
+              }
+
+              return (
+                <View key={v.n} style={{ position: "relative" }} onLayout={onLayout}>
+                  <Pressable
+                    onPress={() => (multiVerses ? toggleMultiVerse(v.n) : selectVerse(v.n))}
+                    onLongPress={() => startMultiSelect(v.n)}
+                    accessibilityState={multiVerses ? { selected: isMultiSelected } : undefined}
+                    style={[
+                      styles.verseRow,
+                      {
+                        backgroundColor: isNarratingVerse
+                          ? palette.gold + "2E"
+                          : highlight
+                            ? HIGHLIGHT_COLORS[highlight.color as keyof typeof HIGHLIGHT_COLORS] + "33"
+                            : "transparent",
+                        borderLeftWidth: isNarratingVerse ? 3 : 0,
+                        borderLeftColor: palette.accent,
+                      },
+                      isMultiSelected && [styles.multiSelected, { borderColor: palette.accent }],
+                    ]}
+                  >
+                    <AppText variant="sansExtraBold" size={11} color={palette.accent} style={styles.verseNum}>
+                      {v.n}
+                    </AppText>
+                    <AppText variant="serif" size={readerFontSize} color={isRedLetter ? "#B22222" : undefined} style={[{ flex: 1, lineHeight: readerFontSize * 1.7 }, isRedLetter && { fontFamily: FONTS.serifSemiboldItalic }]}>
+                      {v.text}
+                      {topics ? (
+                        <AppText
+                          variant="sansExtraBold"
+                          size={readerFontSize * 0.6}
+                          color={palette.accent}
+                          onPress={() => openPrecepts({ verseRef: displayVerseRef, topics })}
+                          accessibilityRole="link"
+                          accessibilityLabel={`${t("Precepts")}: ${topics.map((tp) => tp.title).join(", ")}`}
+                          suppressHighlighting
+                        >
+                          {" "}
+                          ¹
+                        </AppText>
+                      ) : null}
+                    </AppText>
+                  </Pressable>
+                </View>
+              );
+            })}
+          </ScrollView>
+        </Animated.View>
+      </GestureDetector>
 
       {isNarratingChapter && !followNarration ? (
         <Pressable
@@ -246,16 +277,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   verseNum: { minWidth: 18, paddingTop: 5 },
-  footnote: {
-    position: "absolute",
-    left: 12,
-    right: 12,
-    top: "100%",
-    marginTop: -4,
-    zIndex: 10,
-    borderRadius: 12,
-    padding: 14,
-  },
+  multiSelected: { borderWidth: 1.5, borderStyle: "dashed" },
   followPill: {
     position: "absolute",
     bottom: 14,
@@ -266,11 +288,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingVertical: 9,
     paddingHorizontal: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.22,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+    boxShadow: "0px 4px 16px rgba(0, 0, 0, 0.22)",
   },
   sideArrow: {
     position: "absolute",
@@ -281,11 +299,7 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
+    boxShadow: "0px 4px 16px rgba(0, 0, 0, 0.18)",
   },
   sideArrowLeft: { left: 8 },
   sideArrowRight: { right: 8 },

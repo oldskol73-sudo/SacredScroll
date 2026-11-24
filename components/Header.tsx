@@ -14,6 +14,7 @@ const TITLE_KEYS: Record<string, string> = {
   search: "Search",
   plans: "Reading Plans",
   library: "Library",
+  calendar: "High Holy Day Calendar",
 };
 
 // The Read tab's hero image now scrolls away as part of the chapter content
@@ -171,11 +172,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.15)",
   },
   chapterBtn: {
     flexDirection: "row",

@@ -51,8 +51,17 @@ export function BookPicker() {
               {pickerBook ? bookLabel(pickerBook.name, language) : t("Books")}
             </AppText>
           </View>
-          <Pressable onPress={goHome} style={[styles.roundBtn, { backgroundColor: palette.track }]}>
-            <Ionicons name="home" size={16} color={palette.text} />
+          <Pressable
+            onPress={goHome}
+            accessibilityRole="button"
+            accessibilityLabel={t("Home")}
+            hitSlop={8}
+            style={({ pressed }) => [styles.homeBtn, { backgroundColor: palette.track, opacity: pressed ? 0.7 : 1 }]}
+          >
+            <Ionicons name="home-outline" size={16} color={palette.text} />
+            <AppText variant="sansBold" size={13}>
+              {t("Home")}
+            </AppText>
           </Pressable>
         </View>
 
@@ -130,6 +139,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
+  },
+  homeBtn: {
+    height: 34,
+    paddingHorizontal: 14,
+    borderRadius: 17,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   content: { padding: 18, paddingTop: 10, paddingBottom: 30 },
   grid: {

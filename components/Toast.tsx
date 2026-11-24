@@ -7,7 +7,7 @@ export function Toast() {
   const { toast, palette } = useApp();
   if (!toast) return null;
   return (
-    <View style={[styles.toast, { backgroundColor: palette.text }]} pointerEvents="none">
+    <View style={[styles.toast, { backgroundColor: palette.text, pointerEvents: "none" }]}>
       <AppText variant="sansBold" size={13} color={palette.bg}>
         {toast}
       </AppText>

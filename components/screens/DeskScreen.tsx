@@ -1,18 +1,43 @@
 import React, { useMemo } from "react";
-import { View, ScrollView, Pressable, Image, StyleSheet, Linking, Share } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import { View, ScrollView, Pressable, Image, ImageSourcePropType, StyleSheet, Linking, Dimensions } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
 import { getRandomVerse } from "@/constants/bible/verses";
 import { displayRef } from "@/constants/bible/books";
+import { DayMark, FEAST_LABELS, lunarMarksForGregorianYear } from "@/constants/calendar/lunarYear";
+import { FEAST_COLORS } from "@/constants/calendar/feastColors";
+import { monthEvents } from "@/constants/calendar/calendarEvents";
+import { CHRONO_PLAN } from "@/constants/bible/plans";
+import { PRECEPT_TOPICS } from "@/constants/bible/precepts";
+import { useAdRotation, AdKey } from "@/hooks/useAdRotation";
 
-const TSP_LOGO = require("@/assets/images/bible/tsp-logo-cover.jpg");
-const FOUNDED_BANNER = require("@/assets/images/bible/founded-banner.jpg");
 const BIBLE_MAST = require("@/assets/images/bible/Biblemast.jpeg");
 const COMPASS = require("@/assets/images/bible/compass.jpg");
-const LIBRARY_THUMB = require("@/assets/images/bible/Library.jpeg");
+const MMOV_ICON = require("@/assets/images/bible/mmov-icon.jpg");
+const SCROLL_ROD = require("@/assets/images/bible/scroll-rod.png");
+
+const ADS: Record<AdKey, { image: ImageSourcePropType; title: string; body: string; meta?: string; cta: string; link: string }> = {
+  faceJerusalem: {
+    image: COMPASS,
+    title: "Face Jerusalem",
+    body: 'The new compass app designed to "Always Know the Direction of Your Homeland"',
+    cta: "See Preview →",
+    link: "https://www.twelvescentspub.com",
+  },
+  mmov: {
+    image: MMOV_ICON,
+    title: "Mighty Men of Valor",
+    body: "Twelve portraits of courage and faith, from Gideon's three hundred to David's mighty men.",
+    meta: "6 Books Available",
+    cta: "Open Collection →",
+    link: "https://www.twelvescentspub.com",
+  },
+};
+// The rod art's own pixel proportions, so it scales full-bleed without distortion.
+const ROD_ASPECT = 2000 / 669;
+const SCREEN_WIDTH = Dimensions.get("window").width;
+const ROD_HEIGHT = SCREEN_WIDTH / ROD_ASPECT;
 
 function greeting(t: (s: string) => string) {
   const h = new Date().getHours();
@@ -30,229 +55,196 @@ function dateLabel(language: string) {
   });
 }
 
+function todaysLunarMark(): DayMark | undefined {
+  const today = new Date();
+  const key = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+  return lunarMarksForGregorianYear(today.getFullYear()).get(key);
+}
+
+/** True while a feast (including Dedication, Nicanor and Purim) is still
+ * running or yet to begin later in the current month. */
+function feastLeftThisMonth(): boolean {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return monthEvents(now.getFullYear(), now.getMonth()).some(
+    (ev) => ev.kind === "feast" && ev.endDate.getTime() >= today.getTime()
+  );
+}
+
+/** When the upcoming weekly Sabbath begins — sundown on the Friday before the
+ * next Saturday — e.g. "Fri, Nov. 27 Sundown". */
+function nextSabbathLabel(language: string, t: (s: string) => string) {
+  const locale = language === "es" ? "es" : language === "ht" ? "ht" : undefined;
+  const now = new Date();
+  const daysToSaturday = (6 - now.getDay() + 7) % 7;
+  const friday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysToSaturday - 1);
+  const weekday = friday.toLocaleDateString(locale, { weekday: "short" });
+  const monthShort = friday.toLocaleDateString(locale, { month: "short" });
+  const monthLong = friday.toLocaleDateString(locale, { month: "long" });
+  // Abbreviated months take a period ("Nov."); a month with no abbreviation ("May") doesn't.
+  const month = monthShort === monthLong ? monthShort : `${monthShort}.`;
+  return `${weekday}, ${month} ${friday.getDate()} ${t("Sundown")}`;
+}
+
 export function DeskScreen() {
-  const { palette, location, enterContinueReading, setShowBookPicker, goToPlans, goTo, bookmarks, notes, language, t } = useApp();
-  const insets = useSafeAreaInsets();
+  const {
+    palette,
+    location,
+    enterContinueReading,
+    goToPlans,
+    goToCalendar,
+    openPrecepts,
+    goTo,
+    bookmarks,
+    notes,
+    chronoProgress,
+    language,
+    isPremium,
+    t,
+  } = useApp();
 
   const votd = useMemo(() => getRandomVerse(), []);
-  const votdBookmarked = bookmarks.isBookmarked(votd.ref);
+  const lunarToday = useMemo(() => todaysLunarMark(), []);
+  const feastLeft = useMemo(() => feastLeftThisMonth(), []);
+  const adKey = useAdRotation();
+  const ad = ADS[adKey];
+  const lunarColor = lunarToday?.feast ? FEAST_COLORS[lunarToday.feast] : palette.accent;
+  const lunarStatus = lunarToday?.feast
+    ? t(FEAST_LABELS[lunarToday.feast])
+    : lunarToday?.isSabbath
+      ? t("Today is the Sabbath")
+      : lunarToday?.isNewMoon
+        ? t("New moon tonight")
+        : feastLeft
+          ? t("No holy day today")
+          : // No feast left this month — the weekly Sabbath is the highest holy day.
+            `${t("Sabbath")} — ${nextSabbathLabel(language, t)}`;
 
-  function onShareVerse() {
-    Share.share({ message: `"${votd.text}" — ${votd.ref} (KJV)` });
-  }
+  const chronoTotal = CHRONO_PLAN.dayList.length;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: palette.bg }]} edges={["bottom"]}>
-      <ScrollView>
-        <View style={styles.hero}>
-          <LinearGradient colors={["#23160E", "#4B3626"]} style={StyleSheet.absoluteFill} />
-          <View style={styles.logoWatermarkWrap} pointerEvents="none">
-            <Image source={TSP_LOGO} style={styles.logoWatermark} resizeMode="contain" />
-          </View>
-          <View style={[styles.heroContent, { paddingTop: insets.top + 22 }]}>
-            <View style={styles.greetingRow}>
-              <View>
-                <AppText variant="sansExtraBold" size={11.5} color="rgba(255,255,255,.7)" style={{ letterSpacing: 0.5 }}>
-                  {dateLabel(language).toUpperCase()}
-                </AppText>
-                <AppText variant="serifBold" size={24} color="#fff" style={{ marginTop: 2 }}>
-                  {greeting(t)}
-                </AppText>
-              </View>
-            </View>
-          </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: palette.bg }]}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 28 }}>
+        <View style={styles.badgeWrap}>
+          <Image source={BIBLE_MAST} style={styles.badge} resizeMode="cover" />
         </View>
+        <Image source={SCROLL_ROD} style={{ width: SCREEN_WIDTH, height: ROD_HEIGHT }} resizeMode="contain" />
 
         <View style={styles.body}>
-          <Pressable onPress={enterContinueReading} style={[styles.bookCard, { backgroundColor: palette.card, borderColor: palette.accent }]}>
-            <View style={styles.bookCardRow}>
-              <Image source={BIBLE_MAST} style={styles.bookCoverHero} resizeMode="cover" />
-              <View style={{ flex: 1, minWidth: 0, alignItems: "center" }}>
-                <AppText variant="sansExtraBold" size={17}>
-                  {displayRef(location.book, location.chapter, language)}
-                </AppText>
-                <View style={[styles.statsRow, { marginTop: 8 }]}>
-                  <Stat value={bookmarks.bookmarks.length} label={t("Bookmarks")} />
-                  <Stat value={notes.notes.length} label={t("Notes")} />
-                </View>
-              </View>
-            </View>
-            <View style={[styles.bookCtaBtnHero, { backgroundColor: palette.accent }]}>
-              <AppText variant="sansExtraBold" size={14.5} color="#fff">
-                {t("Continue Reading")}
-              </AppText>
-              <Ionicons name="arrow-forward" size={16} color="#fff" />
-            </View>
-          </Pressable>
+          <AppText variant="serifBold" size={30} style={{ color: "#1A140D", lineHeight: 34 }}>
+            {greeting(t)}
+          </AppText>
+          <AppText variant="sansExtraBold" size={11} color={palette.accent} style={styles.dateLine}>
+            {dateLabel(language).toUpperCase()} · {displayRef(location.book, location.chapter, language)}
+          </AppText>
 
-          <View>
-            <SectionLabel>{t("Today's Scripture")}</SectionLabel>
-            <View style={[styles.card, { backgroundColor: palette.card, borderColor: palette.divider }]}>
-              <AppText variant="serif" size={19} style={{ lineHeight: 28 }}>
+          <View style={styles.trail}>
+            <View style={[styles.trailLine, { borderColor: palette.gold }]} />
+
+            <Stop kicker={t("Today's Verse")} onPress={() => goTo(votd.book, votd.chapter)}>
+              <AppText variant="serif" size={13} style={styles.verseQuote}>
                 "{votd.text}"
               </AppText>
-              <AppText variant="sansBold" size={13} dim style={{ marginTop: 10 }}>
+              <AppText variant="sansBold" size={10.5} dim style={{ marginTop: 5 }}>
                 {votd.ref} · KJV
               </AppText>
-              <View style={styles.btnRow}>
-                <Pressable
-                  onPress={() => goTo(votd.book, votd.chapter)}
-                  style={[styles.smallBtn, { backgroundColor: palette.accent }]}
-                >
-                  <AppText variant="sansBold" size={12.5} color="#fff">
-                    {t("Read Full Chapter")}
-                  </AppText>
-                </Pressable>
-                <Pressable
-                  onPress={() =>
-                    bookmarks.toggleBookmark(votd.book, votd.chapter, votd.verse)
-                  }
-                  style={[
-                    styles.smallBtn,
-                    { backgroundColor: votdBookmarked ? palette.accent : palette.cardAlt },
-                  ]}
-                >
-                  <AppText variant="sansBold" size={12.5} color={votdBookmarked ? "#fff" : palette.text}>
-                    {t("Bookmark")}
-                  </AppText>
-                </Pressable>
-                <Pressable onPress={onShareVerse} style={[styles.smallBtn, { backgroundColor: palette.cardAlt }]}>
-                  <AppText variant="sansBold" size={12.5}>
-                    {t("Share")}
-                  </AppText>
-                </Pressable>
-              </View>
-            </View>
-          </View>
+            </Stop>
 
-          <Pressable onPress={() => setShowBookPicker(true)} style={[styles.enterLibraryBtn, { backgroundColor: palette.cardAlt }]}>
-            <Image source={LIBRARY_THUMB} style={styles.enterLibraryIcon} resizeMode="cover" />
-            <AppText variant="sansExtraBold" size={16} style={{ flex: 1 }}>
-              {t("Open the Word")}
-            </AppText>
-            <Ionicons name="arrow-forward" size={20} color={palette.accent} />
-          </Pressable>
+            <Stop kicker={`1 · ${t("Continue Reading")}`} onPress={enterContinueReading}>
+              <AppText variant="sansExtraBold" size={14.5}>
+                {displayRef(location.book, location.chapter, language)}
+              </AppText>
+              <AppText size={10.5} dim style={{ marginTop: 4 }}>
+                {bookmarks.bookmarks.length} {t("bookmarks")} · {notes.notes.length} {t("notes")}
+              </AppText>
+            </Stop>
 
-          <View>
-            <SectionLabel>{t("Discover Something New")}</SectionLabel>
-            <View style={{ gap: 14 }}>
-              <Pressable onPress={goToPlans} style={[styles.discoverRow, { backgroundColor: palette.cardAlt }]}>
-                <Image source={BIBLE_MAST} style={styles.discoverArt} resizeMode="cover" />
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <AppText variant="sansExtraBold" size={14}>
-                    {t("Sin-Specific Guide")}
-                  </AppText>
-                  <AppText size={12} dim style={{ marginTop: 3, lineHeight: 17 }}>
-                    {t("Thirty-six sins named in Mark 7 and Romans 1, each paired with scripture precepts to overcome it.")}
-                  </AppText>
-                  <AppText variant="sansExtraBold" size={12} color={palette.accent} style={{ marginTop: 6 }}>
-                    {t("Learn More ›")}
+            <Stop kicker={`2 · ${t("Precepts")}`} onPress={() => openPrecepts()}>
+              <AppText variant="sansExtraBold" size={14.5}>
+                {PRECEPT_TOPICS.length} {t("Topics, A to Z")}
+              </AppText>
+              <AppText size={10.5} dim style={{ marginTop: 4, lineHeight: 15 }}>
+                {t("Trace Sabbath, Marriage, and hundreds more through the whole Bible")}
+              </AppText>
+            </Stop>
+
+            <Stop kicker={`3 · ${t("Reading Plans")}`} onPress={goToPlans}>
+              <AppText variant="sansExtraBold" size={14.5}>
+                {t("Chronological Reading")}
+              </AppText>
+              <AppText size={10.5} dim style={{ marginTop: 4, lineHeight: 15 }}>
+                {t("Day")} {chronoProgress.done.size} {t("of")} {chronoTotal} — {t("plus Sin Battles and Study by Category")}
+              </AppText>
+            </Stop>
+
+            <Stop kicker={`4 · ${t("High Holy Day Calendar")}`} onPress={goToCalendar}>
+              <AppText variant="sansExtraBold" size={14.5} color={lunarColor}>
+                {lunarStatus}
+              </AppText>
+              <AppText size={10.5} dim style={{ marginTop: 4 }}>
+                {t("Sabbaths, new moons & feast days")}
+              </AppText>
+            </Stop>
+
+            {!isPremium ? (
+              <Stop kicker={`5 · ${t("Discover Something New")}`} onPress={() => Linking.openURL(ad.link)}>
+                <View style={styles.adRow}>
+                  <Image source={ad.image} style={styles.adIcon} resizeMode="cover" />
+                  <AppText variant="sansExtraBold" size={13} style={{ flex: 1 }}>
+                    {t(ad.title)}
                   </AppText>
                 </View>
-              </Pressable>
-
-              <View style={[styles.card, { backgroundColor: palette.card, padding: 0, overflow: "hidden" }]}>
-                <Image source={FOUNDED_BANNER} style={styles.collectionArt} resizeMode="cover" />
-                <View style={{ padding: 18 }}>
-                  <AppText variant="serifBold" size={18}>
-                    {t("Mighty Men of Valor")}
-                  </AppText>
-                  <AppText size={12.5} dim style={{ marginTop: 6, lineHeight: 18 }}>
-                    {t("Twelve portraits of courage and faith, from Gideon's three hundred to David's mighty men.")}
-                  </AppText>
-                  <AppText variant="sansBold" size={11.5} color={palette.accent} style={{ marginTop: 10 }}>
-                    {t("6 Books Available")}
-                  </AppText>
-                  <Pressable
-                    onPress={() => Linking.openURL("https://www.twelvescentspub.com")}
-                    style={[styles.smallBtn, { backgroundColor: palette.accent, marginTop: 14, alignSelf: "flex-start" }]}
-                  >
-                    <AppText variant="sansBold" size={13} color="#fff">
-                      {t("Open Collection")}
-                    </AppText>
-                  </Pressable>
-                </View>
-              </View>
-
-              <View style={[styles.adBanner, { backgroundColor: palette.cardAlt }]}>
-                <Image source={COMPASS} style={styles.adIcon} resizeMode="cover" />
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <AppText variant="sansExtraBold" size={12.5}>
-                    {t('Face Jerusalem — The new compass app designed to "Always Know the Direction of Your Homeland"')}
-                  </AppText>
-                </View>
-                <AppText variant="sansExtraBold" size={12} color={palette.accent}>
-                  {t("Coming Soon")}
+                <AppText size={10.5} dim style={{ marginTop: 7, lineHeight: 15 }}>
+                  {t(ad.body)}
                 </AppText>
-              </View>
-            </View>
+                <AppText variant="sansExtraBold" size={10.5} color={palette.accent} style={{ marginTop: 8 }}>
+                  {ad.meta ? `${t(ad.meta)} · ` : ""}
+                  {t(ad.cta)}
+                </AppText>
+              </Stop>
+            ) : null}
           </View>
+
+          <AppText variant="sansExtraBold" size={9} color={palette.accent} style={styles.endMarker}>
+            {t("— End of Today's Scroll —")}
+          </AppText>
         </View>
+
+        <Image source={SCROLL_ROD} style={{ width: SCREEN_WIDTH, height: ROD_HEIGHT }} resizeMode="contain" />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function Stat({ value, label }: { value: number; label: string }) {
+function Stop({ kicker, onPress, children }: { kicker: string; onPress: () => void; children: React.ReactNode }) {
   const { palette } = useApp();
   return (
-    <View style={{ alignItems: "center" }}>
-      <AppText variant="sansExtraBold" size={15}>
-        {value}
+    <View style={styles.stop}>
+      <View style={[styles.dot, { backgroundColor: palette.accent, borderColor: palette.bg }]} />
+      <AppText variant="sansExtraBold" size={9} color={palette.accent} style={styles.kicker}>
+        {kicker.toUpperCase()}
       </AppText>
-      <AppText size={9} dim style={{ textTransform: "uppercase", letterSpacing: 0.4, marginTop: 1 }}>
-        {label}
-      </AppText>
+      <Pressable onPress={onPress} style={[styles.card, { backgroundColor: palette.card, borderColor: palette.divider }]}>
+        {children}
+      </Pressable>
     </View>
-  );
-}
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <AppText variant="sansExtraBold" size={11} dim style={{ letterSpacing: 1, marginBottom: 10 }}>
-      {String(children).toUpperCase()}
-    </AppText>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  hero: {
-    position: "relative",
-    overflow: "hidden",
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-  },
-  heroContent: { paddingHorizontal: 20, paddingBottom: 22, gap: 18 },
-  greetingRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-  logoWatermarkWrap: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  logoWatermark: { width: "75%", height: "75%", opacity: 0.16 },
-  body: { padding: 20, paddingTop: 20, gap: 20 },
-  bookCard: { borderRadius: 20, padding: 20, borderWidth: 2 },
-  bookCardRow: { flexDirection: "row", gap: 14, alignItems: "center" },
-  bookCtaBtnHero: {
-    marginTop: 16,
-    borderRadius: 12,
-    paddingVertical: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
-  bookCoverHero: { width: 76, height: 76, borderRadius: 16, overflow: "hidden" },
-  statsRow: { flexDirection: "row", gap: 16, marginTop: 10 },
-  card: { borderRadius: 20, padding: 20, borderWidth: 1 },
-  btnRow: { flexDirection: "row", gap: 10, marginTop: 16, flexWrap: "wrap" },
-  smallBtn: { borderRadius: 10, paddingVertical: 9, paddingHorizontal: 14 },
-  collectionArt: { width: "100%", height: 140 },
-  discoverRow: { flexDirection: "row", gap: 14, alignItems: "center", borderRadius: 20, padding: 16 },
-  discoverArt: { width: 44, height: 44, borderRadius: 10 },
-  adBanner: { flexDirection: "row", gap: 12, alignItems: "center", borderRadius: 16, padding: 12 },
-  adIcon: { width: 44, height: 44, borderRadius: 10, alignItems: "center", justifyContent: "center" },
-  enterLibraryBtn: { flexDirection: "row", alignItems: "center", gap: 14, borderRadius: 20, padding: 16 },
-  enterLibraryIcon: { width: 44, height: 44, borderRadius: 10 },
+  badgeWrap: { alignItems: "center", paddingTop: 8, paddingBottom: 4 },
+  badge: { width: 110, height: 110, borderRadius: 20 },
+  body: { paddingHorizontal: 20, paddingTop: 16 },
+  dateLine: { marginTop: 8, letterSpacing: 0.4 },
+  trail: { position: "relative", marginTop: 22, paddingLeft: 22 },
+  trailLine: { position: "absolute", left: 5, top: 7, bottom: 7, borderLeftWidth: 2, borderStyle: "dashed" },
+  stop: { position: "relative", marginBottom: 16 },
+  dot: { position: "absolute", left: -22, top: 4, width: 13, height: 13, borderRadius: 6.5, borderWidth: 2 },
+  kicker: { letterSpacing: 0.8, marginBottom: 6 },
+  card: { borderRadius: 14, borderWidth: 1, padding: 14 },
+  verseQuote: { fontStyle: "italic", lineHeight: 19 },
+  adRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  adIcon: { width: 36, height: 36, borderRadius: 9 },
+  endMarker: { textAlign: "center", letterSpacing: 1.2, marginTop: 6 },
 });

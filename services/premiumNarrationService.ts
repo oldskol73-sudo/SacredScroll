@@ -1,4 +1,4 @@
-import type { AudioPlayer, AudioStatus } from "expo-audio";
+import { createAudioPlayer, setAudioModeAsync, AudioPlayer, AudioStatus } from "expo-audio";
 import { AudioConfiguration } from "@/constants/audio/config";
 import {
   ChapterAudioMetadata,
@@ -26,28 +26,15 @@ export interface PlayChapterOptions {
   rate?: PlaybackSpeed;
 }
 
-// expo-audio throws at require() time when its native module isn't present
-// in the running binary (same failure mode as expo-speech elsewhere in this
-// app). A plain top-level `import` would crash the whole app on launch since
-// AppContext constructs this service unconditionally; routing it through
-// require() inside try/catch lets that failure degrade to "premium audio
-// unavailable" (which already offers the Apple Reader fallback) instead.
-let Audio: typeof import("expo-audio") | null;
-try {
-  Audio = require("expo-audio");
-} catch {
-  Audio = null;
-}
-
 let audioModeConfigured = false;
 
 /** Configures the audio session once for spoken-word background playback:
  * exclusive focus (doNotMix, matching AVAudioSession's `.spokenAudio` intent),
  * plays through the silent switch, and survives backgrounding/lock. */
 async function ensureAudioMode() {
-  if (audioModeConfigured || !Audio) return;
+  if (audioModeConfigured) return;
   audioModeConfigured = true;
-  await Audio.setAudioModeAsync({
+  await setAudioModeAsync({
     playsInSilentMode: true,
     interruptionMode: "doNotMix",
     shouldPlayInBackground: true,
@@ -89,10 +76,6 @@ export class PremiumNarrationService {
   }
 
   async playChapter(book: string, chapter: number, opts: PlayChapterOptions = {}) {
-    if (!Audio) {
-      this.fail("chapterAudioUnavailable", "Premium narration audio isn't available on this build.");
-      return;
-    }
     await ensureAudioMode();
     this.setStatus("loading");
 
@@ -110,7 +93,7 @@ export class PremiumNarrationService {
     this.rate = opts.rate ?? this.rate;
 
     const uri = opts.localUri ?? AudioConfiguration.audioFileUrl(book, metadata.audioFile);
-    this.player = Audio.createAudioPlayer({ uri });
+    this.player = createAudioPlayer({ uri });
     this.statusSub = this.player.addListener("playbackStatusUpdate", (status) => this.handleStatus(status));
     this.player.setPlaybackRate(this.rate);
     this.player.setActiveForLockScreen(

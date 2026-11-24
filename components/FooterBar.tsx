@@ -4,6 +4,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
 
+export const FOOTER_BAR_HEIGHT = 57;
+
 export function FooterBar() {
   const { palette, setShowDrawer, setShowSettings, t } = useApp();
 

@@ -2,17 +2,19 @@
   "expo": {
     "name": "Sacred Scroll",
     "slug": "tsp-bible-app",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/bible/icon.png",
     "scheme": "expotemplate",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.twelvescentspublishing.sacredscroll",
+      "buildNumber": "01",
       "infoPlist": {
-        "UIBackgroundModes": ["audio"],
+        "UIBackgroundModes": [
+          "audio"
+        ],
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -21,8 +23,9 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "permissions": ["android.permission.MODIFY_AUDIO_SETTINGS"],
+      "permissions": [
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
       "package": "com.twelvescentspublishing.sacredscroll"
     },
     "web": {
@@ -47,7 +50,9 @@
           "microphonePermission": false,
           "recordAudioAndroid": false
         }
-      ]
+      ],
+      "./plugins/withPodsDeploymentTarget",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true

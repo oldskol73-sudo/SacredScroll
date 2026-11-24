@@ -4893,12 +4893,13 @@ export const PRECEPT_TOPICS: PreceptTopic[] = [
   },
 ];
 
-/** Map of "Book Chapter:Verse" -> topic, for the Read screen footnote markers. */
-export const PRECEPT_ANCHOR_INDEX: Record<string, PreceptTopic> = (() => {
-  const idx: Record<string, PreceptTopic> = {};
+/** Map of "Book Chapter:Verse" -> every topic anchored on that verse (some verses anchor several). */
+export const PRECEPT_ANCHOR_TOPICS: Record<string, PreceptTopic[]> = (() => {
+  const idx: Record<string, PreceptTopic[]> = {};
   for (const t of PRECEPT_TOPICS) {
     const displayBook = t.anchor.book === "Psalms" ? "Psalm" : t.anchor.book;
-    idx[`${displayBook} ${t.anchor.chapter}:${t.anchor.verse}`] = t;
+    const key = `${displayBook} ${t.anchor.chapter}:${t.anchor.verse}`;
+    (idx[key] ??= []).push(t);
   }
   return idx;
 })();

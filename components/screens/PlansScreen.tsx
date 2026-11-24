@@ -1,5 +1,6 @@
 import React from "react";
 import { View, ScrollView, Pressable, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
 import { SIN_BATTLES, CHRONO_PLAN } from "@/constants/bible/plans";
@@ -21,6 +22,7 @@ export function PlansScreen() {
     setShowSinBattlesRomans,
     setShowStudyCategories,
     setShowWeeklyStudy,
+    requirePremium,
     t,
   } = useApp();
 
@@ -56,11 +58,16 @@ export function PlansScreen() {
         </AppText>
       </Pressable>
 
-      <Pressable onPress={() => setShowSinBattlesMark(true)} style={[styles.card, { backgroundColor: palette.card }]}>
-        <AppText variant="sansExtraBold" size={11} color={palette.accent} style={{ letterSpacing: 1, marginBottom: 6 }}>
-          {t("TOPICAL STUDY")}
-        </AppText>
-        <AppText variant="sansExtraBold" size={18} style={{ marginBottom: 10 }}>
+      <Pressable
+        onPress={() => requirePremium(() => setShowSinBattlesMark(true))}
+        style={[styles.card, { backgroundColor: palette.card }]}
+      >
+        <View style={styles.kickerRow}>
+          <AppText variant="sansExtraBold" size={11} color={palette.accent} style={{ letterSpacing: 1 }}>
+            {t("TOPICAL STUDY")}
+          </AppText>
+        </View>
+        <AppText variant="sansExtraBold" size={18} style={{ marginTop: 6, marginBottom: 10 }}>
           {t("Sin Battles: Mark 7")}
         </AppText>
         <ProgressBar pct={markPct} />
@@ -69,11 +76,16 @@ export function PlansScreen() {
         </AppText>
       </Pressable>
 
-      <Pressable onPress={() => setShowSinBattlesRomans(true)} style={[styles.card, { backgroundColor: palette.card }]}>
-        <AppText variant="sansExtraBold" size={11} color={palette.accent} style={{ letterSpacing: 1, marginBottom: 6 }}>
-          {t("TOPICAL STUDY")}
-        </AppText>
-        <AppText variant="sansExtraBold" size={18} style={{ marginBottom: 10 }}>
+      <Pressable
+        onPress={() => requirePremium(() => setShowSinBattlesRomans(true))}
+        style={[styles.card, { backgroundColor: palette.card }]}
+      >
+        <View style={styles.kickerRow}>
+          <AppText variant="sansExtraBold" size={11} color={palette.accent} style={{ letterSpacing: 1 }}>
+            {t("TOPICAL STUDY")}
+          </AppText>
+        </View>
+        <AppText variant="sansExtraBold" size={18} style={{ marginTop: 6, marginBottom: 10 }}>
           {t("Sin Battles: Romans 1")}
         </AppText>
         <ProgressBar pct={romansPct} />
@@ -82,11 +94,16 @@ export function PlansScreen() {
         </AppText>
       </Pressable>
 
-      <Pressable onPress={() => setShowStudyCategories(true)} style={[styles.card, { backgroundColor: palette.card }]}>
-        <AppText variant="sansExtraBold" size={11} color={palette.accent} style={{ letterSpacing: 1, marginBottom: 6 }}>
-          {t("12 CATEGORIES")}
-        </AppText>
-        <AppText variant="sansExtraBold" size={18} style={{ marginBottom: 10 }}>
+      <Pressable
+        onPress={() => requirePremium(() => setShowStudyCategories(true))}
+        style={[styles.card, { backgroundColor: palette.card }]}
+      >
+        <View style={styles.kickerRow}>
+          <AppText variant="sansExtraBold" size={11} color={palette.accent} style={{ letterSpacing: 1 }}>
+            {t("12 CATEGORIES")}
+          </AppText>
+        </View>
+        <AppText variant="sansExtraBold" size={18} style={{ marginTop: 6, marginBottom: 10 }}>
           {t("Study by Category")}
         </AppText>
         <ProgressBar pct={categoryPct} />
@@ -95,11 +112,16 @@ export function PlansScreen() {
         </AppText>
       </Pressable>
 
-      <Pressable onPress={() => setShowWeeklyStudy(true)} style={[styles.card, { backgroundColor: palette.card }]}>
-        <AppText variant="sansExtraBold" size={11} color={palette.accent} style={{ letterSpacing: 1, marginBottom: 6 }}>
-          {WEEKLY_STUDY_PLAN_TOTAL_WEEKS} {t("WEEK PLAN")}
-        </AppText>
-        <AppText variant="sansExtraBold" size={18} style={{ marginBottom: 10 }}>
+      <Pressable
+        onPress={() => requirePremium(() => setShowWeeklyStudy(true))}
+        style={[styles.card, { backgroundColor: palette.card }]}
+      >
+        <View style={styles.kickerRow}>
+          <AppText variant="sansExtraBold" size={11} color={palette.accent} style={{ letterSpacing: 1 }}>
+            {WEEKLY_STUDY_PLAN_TOTAL_WEEKS} {t("WEEK PLAN")}
+          </AppText>
+        </View>
+        <AppText variant="sansExtraBold" size={18} style={{ marginTop: 6, marginBottom: 10 }}>
           {t("Weekly Study Plan")}
         </AppText>
         <ProgressBar pct={weeklyPct} />
@@ -125,4 +147,5 @@ const styles = StyleSheet.create({
   card: { borderRadius: 18, padding: 20 },
   track: { height: 6, borderRadius: 3, overflow: "hidden" },
   trackFill: { height: "100%", borderRadius: 3 },
+  kickerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
 });

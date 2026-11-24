@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useApp, TabKey } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
 
-const LOGO_BADGE = require("@/assets/images/bible/logo-badge.png");
+const LOGO_BANNER = require("@/assets/images/bible/logo-banner.png");
 const UPGRADE_EMBLEM = require("@/assets/images/bible/Publishing-profie-pic.png");
 
 type NavKey = TabKey | "settings" | "precepts" | "desk" | "howToUse";
@@ -16,6 +16,7 @@ const NAV_ITEMS: { key: NavKey; label: string; icon: keyof typeof Ionicons.glyph
   { key: "search", label: "Search", icon: "search-outline" },
   { key: "plans", label: "Plans", icon: "calendar-outline" },
   { key: "library", label: "Library", icon: "bookmark-outline" },
+  { key: "calendar", label: "Calendar", icon: "ellipse-outline" },
   { key: "precepts", label: "Precepts", icon: "list-outline" },
   { key: "howToUse", label: "How to Use", icon: "help-circle-outline" },
   { key: "settings", label: "Settings", icon: "settings-outline" },
@@ -31,7 +32,7 @@ export function Drawer() {
     desk,
     goToDesk,
     setShowSettings,
-    setShowPrecepts,
+    openPrecepts,
     setShowHowToUse,
     setShowAboutTranslation,
     goTo,
@@ -50,7 +51,7 @@ export function Drawer() {
     } else if (key === "settings") {
       setShowSettings(true);
     } else if (key === "precepts") {
-      setShowPrecepts(true);
+      openPrecepts();
     } else if (key === "howToUse") {
       setShowHowToUse(true);
     } else {
@@ -63,8 +64,8 @@ export function Drawer() {
       <Pressable style={styles.backdrop} onPress={() => setShowDrawer(false)}>
         <Pressable style={[styles.panel, { backgroundColor: palette.bg }]} onPress={(e) => e.stopPropagation()}>
           <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-            <View style={[styles.hero, { backgroundColor: "#23160E" }]}>
-              <Image source={LOGO_BADGE} style={styles.heroImage} resizeMode="contain" />
+            <View style={styles.hero}>
+              <Image source={LOGO_BANNER} style={styles.heroImage} resizeMode="contain" />
             </View>
 
             <View style={styles.navList}>
@@ -128,16 +129,16 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   hero: {
-    padding: 20,
+    // Matches the logo's own background so no seam shows around it.
+    backgroundColor: "#130A05",
+    height: 136,
+    overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
   },
   heroImage: {
-    // logo-badge.png is 600x825 (portrait); size the box to match its real
-    // aspect ratio so "contain" doesn't shrink it to fit a short wide box.
-    width: 70,
-    height: 96,
-    borderRadius: 8,
+    width: 250,
+    height: 125, // logo-banner.png is 600x300
   },
   upgradeImage: {
     marginHorizontal: 14,

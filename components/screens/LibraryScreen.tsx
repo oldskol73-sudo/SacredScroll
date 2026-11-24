@@ -4,13 +4,50 @@ import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
 import { verseText } from "@/constants/bible/verses";
 import { localizeStoredRef } from "@/constants/bible/books";
-import { HIGHLIGHT_COLORS, HighlightColorKey } from "@/constants/theme";
+import { BibleLanguage } from "@/constants/bible/verses";
+import { HIGHLIGHT_COLORS, HighlightColorKey, Palette } from "@/constants/theme";
 
 type Segment = "bookmarks" | "highlights" | "notes";
+
+// A single row rendered as a Featured-style tile. All three segments share the
+// same shape; `color` is only set for highlights and `text` only for notes.
+type LibItem = {
+  id: string;
+  ref: string;
+  book: string;
+  chapter: number;
+  verse: number;
+  createdAt: number;
+  color?: string;
+  text?: string;
+};
 
 function snippet(book: string, chapter: number, verse: number) {
   const text = verseText(book, chapter, verse);
   return text.length > 90 ? text.slice(0, 90) + "…" : text;
+}
+
+// Buckets items (already sorted newest-first) into Today / This Week / Earlier.
+// Returns only non-empty groups so headers never show above an empty grid.
+function groupByDate(items: LibItem[], t: (s: string) => string) {
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const weekStart = todayStart - 6 * 24 * 60 * 60 * 1000;
+
+  const today: LibItem[] = [];
+  const thisWeek: LibItem[] = [];
+  const earlier: LibItem[] = [];
+  for (const item of items) {
+    if (item.createdAt >= todayStart) today.push(item);
+    else if (item.createdAt >= weekStart) thisWeek.push(item);
+    else earlier.push(item);
+  }
+
+  return [
+    { label: t("Today"), items: today },
+    { label: t("This Week"), items: thisWeek },
+    { label: t("Earlier"), items: earlier },
+  ].filter((g) => g.items.length > 0);
 }
 
 export function LibraryScreen() {
@@ -22,6 +59,28 @@ export function LibraryScreen() {
     showToast(t("Tap a verse, then Note to add one"));
   }
 
+  const remove = (item: LibItem) => {
+    if (segment === "bookmarks") bookmarks.removeBookmark(item.id);
+    else if (segment === "highlights") highlights.removeHighlight(item.id);
+    else notes.removeNote(item.id);
+  };
+
+  const items: LibItem[] =
+    segment === "bookmarks"
+      ? bookmarks.bookmarks
+      : segment === "highlights"
+      ? highlights.highlights
+      : notes.notes;
+
+  const groups = groupByDate(items, t);
+
+  const emptyLabel =
+    segment === "bookmarks"
+      ? t("No bookmarks yet. Tap a verse in Read to save one.")
+      : segment === "highlights"
+      ? t("No highlights yet.")
+      : t("No notes yet.");
+
   return (
     <View style={styles.wrap}>
       <View style={styles.segRow}>
@@ -31,99 +90,89 @@ export function LibraryScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        {segment === "bookmarks" ? (
-          bookmarks.bookmarks.length === 0 ? (
-            <AppText dim>{t("No bookmarks yet. Tap a verse in Read to save one.")}</AppText>
-          ) : (
-            bookmarks.bookmarks.map((b) => (
-              <View key={b.id} style={[styles.row, { backgroundColor: palette.card }]}>
-                <Pressable onPress={() => goTo(b.book, b.chapter)} style={{ flex: 1 }}>
-                  <AppText variant="sansExtraBold" size={11} color={palette.accent} style={{ marginBottom: 4 }}>
-                    {localizeStoredRef(b.ref, language)}
-                  </AppText>
-                  <AppText variant="serif" size={14}>
-                    {snippet(b.book, b.chapter, b.verse)}
-                  </AppText>
-                </Pressable>
-                <Pressable onPress={() => bookmarks.removeBookmark(b.id)}>
-                  <AppText dim size={16}>
-                    ✕
-                  </AppText>
-                </Pressable>
-              </View>
-            ))
-          )
-        ) : null}
-
-        {segment === "highlights" ? (
-          highlights.highlights.length === 0 ? (
-            <AppText dim>{t("No highlights yet.")}</AppText>
-          ) : (
-            highlights.highlights.map((h) => (
-              <View key={h.id} style={[styles.row, { backgroundColor: palette.card }]}>
-                <Pressable onPress={() => goTo(h.book, h.chapter)} style={styles.highlightLeft}>
-                  <View
-                    style={[
-                      styles.dot,
-                      { backgroundColor: HIGHLIGHT_COLORS[h.color as HighlightColorKey] || palette.accent },
-                    ]}
-                  />
-                  <View style={{ flex: 1 }}>
-                    <AppText variant="sansExtraBold" size={11} color={palette.accent} style={{ marginBottom: 4 }}>
-                      {localizeStoredRef(h.ref, language)}
-                    </AppText>
-                    <AppText variant="serif" size={14}>
-                      {snippet(h.book, h.chapter, h.verse)}
-                    </AppText>
-                  </View>
-                </Pressable>
-                <Pressable onPress={() => highlights.removeHighlight(h.id)}>
-                  <AppText dim size={16}>
-                    ✕
-                  </AppText>
-                </Pressable>
-              </View>
-            ))
-          )
-        ) : null}
-
         {segment === "notes" ? (
-          <View style={{ gap: 10 }}>
-            <Pressable onPress={newNote} style={[styles.newNoteBtn, { backgroundColor: palette.accent }]}>
-              <AppText variant="sansExtraBold" size={13} color="#fff">
-                {t("+ New Note")}
-              </AppText>
-            </Pressable>
-            {notes.notes.length === 0 ? (
-              <AppText dim>{t("No notes yet.")}</AppText>
-            ) : (
-              notes.notes.map((n) => (
-                <View key={n.id} style={[styles.noteCard, { backgroundColor: palette.card }]}>
-                  <View style={styles.rowBetween}>
-                    <Pressable onPress={() => goTo(n.book, n.chapter)}>
-                      <AppText variant="sansExtraBold" size={11} color={palette.accent}>
-                        {localizeStoredRef(n.ref, language)} ·{" "}
-                        {new Date(n.createdAt).toLocaleDateString(
-                          language === "es" ? "es" : language === "ht" ? "ht" : undefined
-                        )}
-                      </AppText>
-                    </Pressable>
-                    <Pressable onPress={() => notes.removeNote(n.id)}>
-                      <AppText dim size={15}>
-                        ✕
-                      </AppText>
-                    </Pressable>
-                  </View>
-                  <AppText size={14} style={{ lineHeight: 20, marginTop: 6 }}>
-                    {n.text}
-                  </AppText>
-                </View>
-              ))
-            )}
-          </View>
+          <Pressable onPress={newNote} style={[styles.newNoteBtn, { backgroundColor: palette.accent }]}>
+            <AppText variant="sansExtraBold" size={13} color="#fff">
+              {t("+ New Note")}
+            </AppText>
+          </Pressable>
         ) : null}
+
+        {items.length === 0 ? (
+          <AppText dim>{emptyLabel}</AppText>
+        ) : (
+          groups.map((group) => (
+            <View key={group.label} style={{ marginBottom: 18 }}>
+              <AppText variant="sansExtraBold" size={13} dim style={styles.groupLabel}>
+                {group.label.toUpperCase()}
+              </AppText>
+              <View style={styles.grid}>
+                {group.items.map((item) => (
+                  <LibTile
+                    key={item.id}
+                    item={item}
+                    segment={segment}
+                    palette={palette}
+                    language={language}
+                    onPress={() => goTo(item.book, item.chapter)}
+                    onRemove={() => remove(item)}
+                  />
+                ))}
+              </View>
+            </View>
+          ))
+        )}
       </ScrollView>
     </View>
+  );
+}
+
+function LibTile({
+  item,
+  segment,
+  palette,
+  language,
+  onPress,
+  onRemove,
+}: {
+  item: LibItem;
+  segment: Segment;
+  palette: Palette;
+  language: BibleLanguage;
+  onPress: () => void;
+  onRemove: () => void;
+}) {
+  const body =
+    segment === "notes" ? item.text || "" : snippet(item.book, item.chapter, item.verse);
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[styles.tile, { backgroundColor: palette.card, borderColor: palette.divider }]}
+      accessibilityRole="button"
+      accessibilityLabel={localizeStoredRef(item.ref, language)}
+    >
+      <View style={styles.tileHeader}>
+        {segment === "highlights" ? (
+          <View
+            style={[
+              styles.dot,
+              { backgroundColor: HIGHLIGHT_COLORS[item.color as HighlightColorKey] || palette.accent },
+            ]}
+          />
+        ) : null}
+        <AppText variant="sansExtraBold" size={11} color={palette.accent} numberOfLines={1} style={{ flex: 1 }}>
+          {localizeStoredRef(item.ref, language)}
+        </AppText>
+        <Pressable onPress={onRemove} hitSlop={8}>
+          <AppText dim size={14}>
+            ✕
+          </AppText>
+        </Pressable>
+      </View>
+      <AppText variant={segment === "notes" ? "sans" : "serif"} size={13} numberOfLines={3} style={{ lineHeight: 18 }}>
+        {body}
+      </AppText>
+    </Pressable>
   );
 }
 
@@ -145,11 +194,17 @@ const styles = StyleSheet.create({
   wrap: { flex: 1, paddingHorizontal: 20, paddingTop: 16 },
   segRow: { flexDirection: "row", gap: 8, marginBottom: 16 },
   segBtn: { flex: 1, borderRadius: 12, paddingVertical: 10, alignItems: "center" },
-  content: { paddingBottom: 120, gap: 10 },
-  row: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, padding: 14 },
-  highlightLeft: { flex: 1, flexDirection: "row", alignItems: "flex-start", gap: 10 },
-  dot: { width: 10, height: 10, borderRadius: 5, marginTop: 4 },
-  newNoteBtn: { borderRadius: 12, paddingVertical: 12, alignItems: "center" },
-  noteCard: { borderRadius: 16, padding: 14 },
-  rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  content: { paddingBottom: 120 },
+  groupLabel: { letterSpacing: 1, marginBottom: 10 },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  tile: {
+    width: "47%",
+    minHeight: 92,
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 12,
+  },
+  tileHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 6 },
+  dot: { width: 9, height: 9, borderRadius: 5 },
+  newNoteBtn: { borderRadius: 12, paddingVertical: 12, alignItems: "center", marginBottom: 16 },
 });

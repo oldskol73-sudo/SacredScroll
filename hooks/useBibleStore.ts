@@ -20,6 +20,9 @@ export function useSettings(userId?: string) {
   const readerFontSize = row?.readerFontSize ?? 18;
   const notificationsOn = row?.notificationsOn ?? true;
   const language = (row?.language as Language | undefined) ?? DEFAULT_LANGUAGE;
+  const redLetterEnabled = row?.redLetterEnabled ?? true;
+  const hasSeenOnboarding = row?.hasSeenOnboarding ?? false;
+  const premiumUnlocked = row?.premiumUnlocked ?? false;
 
   function ensureRow() {
     if (row || !userId) return null;
@@ -33,7 +36,15 @@ export function useSettings(userId?: string) {
   }
 
   function update(
-    patch: Partial<{ atmosphere: AtmosphereKey; readerFontSize: number; notificationsOn: boolean; language: Language }>
+    patch: Partial<{
+      atmosphere: AtmosphereKey;
+      readerFontSize: number;
+      notificationsOn: boolean;
+      language: Language;
+      redLetterEnabled: boolean;
+      hasSeenOnboarding: boolean;
+      premiumUnlocked: boolean;
+    }>
   ) {
     if (row) {
       db.transact(db.tx.settings[row.id].update(patch));
@@ -53,11 +64,17 @@ export function useSettings(userId?: string) {
     readerFontSize,
     notificationsOn,
     language,
+    redLetterEnabled,
+    hasSeenOnboarding,
+    premiumUnlocked,
     setAtmosphere: (key: AtmosphereKey) => update({ atmosphere: key }),
     cycleAtmosphere: () => update({ atmosphere: nextAtmosphere(atmosphere) }),
     setReaderFontSize: (n: number) => update({ readerFontSize: n }),
     toggleNotifications: () => update({ notificationsOn: !notificationsOn }),
     setLanguage: (lang: Language) => update({ language: lang }),
+    toggleRedLetter: () => update({ redLetterEnabled: !redLetterEnabled }),
+    completeOnboarding: () => update({ hasSeenOnboarding: true }),
+    unlockPremium: () => update({ premiumUnlocked: true }),
     ensureRow,
   };
 }

@@ -5,46 +5,84 @@ import { Ionicons } from "@expo/vector-icons";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
 
-const SECTIONS = [
+const SECTIONS: { key: string; title: string; items: string[] }[] = [
   {
     key: "desk",
     title: "Publisher's Desk",
-    body: "The landing screen when you first open the app — your current chapter, bookmarks and notes at a glance, today's scripture, and featured collections from Twelve Scents Publishing.",
+    items: [
+      "The landing screen when you first open the app.",
+      "See your current chapter, bookmarks and notes at a glance, and today's scripture.",
+      "Browse featured collections from Twelve Scents Publishing.",
+    ],
   },
   {
     key: "today",
     title: "Today",
-    body: "A daily home base with a greeting, the verse of the day, and quick links back into your reading. It refreshes with a new verse each time you open it.",
+    items: [
+      "A daily home base with a greeting and the verse of the day.",
+      "Refreshes with a new verse each time you open the app.",
+      "Quick links jump you back into your reading.",
+    ],
   },
   {
     key: "read",
     title: "Read",
-    body: "Tap the chapter name at the top to jump to any book or chapter. Tap a verse to highlight, bookmark, add a note, copy, or share it. A small ¹ next to a verse links to a Precepts topic for related cross-references.",
+    items: [
+      "Tap the chapter name at the top to jump to any book or chapter.",
+      "Swipe left or right on the text to move to the next or previous chapter.",
+      "Tap a verse to highlight, bookmark, add a note, copy, or share it.",
+      "To select multiple verses, tap a verse then choose \"Select More\" — the modal closes and that verse is selected. Tap any additional verses to add them, then apply highlights, copy, share, or bookmark the whole selection at once.",
+      "You can also long-press any verse to jump straight into multi-select mode.",
+      "A small ¹ next to a verse opens a Precepts topic with related cross-references.",
+      "Turn on Red Letter in Settings to display the words of Christ in red italic.",
+    ],
   },
   {
     key: "search",
     title: "Search",
-    body: "Search the full text of every verse across the KJV and Apocrypha. Narrow results to specific books when you need to.",
+    items: [
+      "Search the full text of every verse across the KJV and Apocrypha.",
+      "Narrow results to specific books when you need to.",
+    ],
   },
   {
     key: "plans",
     title: "Reading Plans",
-    body: "The Chronological 1-Year plan, the Sin-Specific Battles topical study, and the topic-based study plans all live here, with progress you can check off as you go.",
+    items: [
+      "The Chronological 1-Year plan walks through Scripture in historical order.",
+      "Sin-Specific Battles is a topical study focused on spiritual warfare.",
+      "Topic-based study plans let you dig into focused themes.",
+      "Check off progress as you go — it's saved automatically.",
+    ],
   },
   {
     key: "library",
     title: "Library",
-    body: "Every verse you've bookmarked and every note you've written, all in one place, organized for quick review.",
+    items: [
+      "Every verse you've bookmarked, organized for quick review.",
+      "Every note you've written, all in one place.",
+    ],
   },
   {
     key: "precepts",
     title: "Precepts",
-    body: "Topical scripture chains — pick a theme and see every cross-reference tied to it, with a one-tap link back into the Read tab for full context.",
+    items: [
+      "Topical scripture chains — pick a theme and see every cross-reference tied to it.",
+      "Tap any result to jump directly to that verse in the Read tab.",
+    ],
   },
   {
     key: "settings",
     title: "Settings",
-    body: "Toggle notifications, switch reading atmosphere (Royal Parchment, Temple Stone, Midnight Scroll), adjust font size, upload your own chapter narrations, and find About Us and Feedback.",
+    items: [
+      "Switch language between English, Español, and Kreyòl.",
+      "Toggle notifications on or off.",
+      "Choose a reading atmosphere: Royal Parchment, Temple Stone, or Midnight Scroll.",
+      "Adjust reader font size.",
+      "Enable Red Letter mode to show the words of Christ in red italic.",
+      "Upload your own audio narration for any chapter.",
+      "Access About Us, Feedback, and Help.",
+    ],
   },
 ];
 
@@ -87,9 +125,16 @@ export function HowToUseOverlay() {
                     </AppText>
                   </Pressable>
                   {isExpanded ? (
-                    <AppText size={13} dim style={{ lineHeight: 19, marginTop: 10 }}>
-                      {t(s.body)}
-                    </AppText>
+                    <View style={styles.itemList}>
+                      {s.items.map((item, i) => (
+                        <View key={i} style={styles.itemRow}>
+                          <AppText size={12} dim style={styles.bullet}>·</AppText>
+                          <AppText size={13} dim style={styles.itemText}>
+                            {t(item)}
+                          </AppText>
+                        </View>
+                      ))}
+                    </View>
                   ) : null}
                 </View>
               );
@@ -115,4 +160,8 @@ const styles = StyleSheet.create({
   card: { borderRadius: 16, padding: 18 },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   backBtn: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  itemList: { marginTop: 10, gap: 8 },
+  itemRow: { flexDirection: "row", gap: 8 },
+  bullet: { lineHeight: 19, width: 10 },
+  itemText: { flex: 1, lineHeight: 19 },
 });

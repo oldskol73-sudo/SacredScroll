@@ -55,6 +55,9 @@ const _schema = i.schema({
       language: i.string().optional(),
       notificationsOn: i.boolean(),
       readerFontSize: i.number(),
+      redLetterEnabled: i.boolean().optional(),
+      hasSeenOnboarding: i.boolean().optional(),
+      premiumUnlocked: i.boolean().optional(),
     }),
   },
   links: {

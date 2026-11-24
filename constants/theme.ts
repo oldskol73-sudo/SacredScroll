@@ -128,6 +128,7 @@ export const DARK = ATMOSPHERES.midnight;
 
 export const FONTS = {
   serifSemibold: "SourceSerif4_600SemiBold",
+  serifSemiboldItalic: "SourceSerif4_600SemiBold_Italic",
   serifBold: "SourceSerif4_700Bold",
   sansRegular: "NunitoSans_400Regular",
   sansBold: "NunitoSans_700Bold",

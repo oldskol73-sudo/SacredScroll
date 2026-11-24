@@ -7,6 +7,7 @@ export type Language = "en" | "es" | "ht";
 const ES: Record<string, string> = {
   // Nav / drawer
   "Publisher's Desk": "Escritorio del Editor",
+  Home: "Inicio",
   Today: "Hoy",
   Read: "Leer",
   Search: "Buscar",
@@ -17,9 +18,20 @@ const ES: Record<string, string> = {
   Settings: "Configuración",
   Menu: "Menú",
   "Reading Plans": "Planes de Lectura",
-  "Upgrade to Premium": "Mejorar a Premium",
+  "Unlock Sacred Scroll": "Desbloquear Sacred Scroll",
   "Unlock commentary, study tools, and more.": "Desbloquea comentarios, herramientas de estudio y más.",
   "Upgrade Now": "Mejorar Ahora",
+  "Go deeper in your study, personalize your experience, and support Sacred Scroll.":
+    "Profundiza en tu estudio, personaliza tu experiencia y apoya a Sacred Scroll.",
+  "Every Precepts topic — all 442, A to Z": "Cada tema de Preceptos — los 442, de la A a la Z",
+  "All 4 specialized study plans": "Los 4 planes de estudio especializados",
+  "Twelve Scents Narrator audio": "Audio del Narrador Twelve Scents",
+  "Upload your own chapter narrations": "Sube tus propias narraciones de capítulos",
+  "An ad-free Desk": "Un Escritorio sin anuncios",
+  "This precept chain is locked. Tap to unlock.":
+    "Esta cadena de preceptos está bloqueada. Toca para desbloquear.",
+  "Maybe Later": "Tal Vez Después",
+  "Unlocked — thank you!": "¡Desbloqueado — gracias!",
   "✧ DAILY VERSE ✧": "✧ VERSÍCULO DIARIO ✧",
   "Thy word is a lamp unto my feet, and a light unto my path.":
     "Lámpara es a mis pies tu palabra, y lumbrera á mi camino.",
@@ -117,6 +129,13 @@ const ES: Record<string, string> = {
   // Verse action bar
   "Close ✕": "Cerrar ✕",
   Copy: "Copiar",
+  "Select more verses": "Seleccionar más versículos",
+  "Tap verses to add or remove them.": "Toca versículos para añadirlos o quitarlos.",
+  verse: "versículo",
+  verses: "versículos",
+  Done: "Listo",
+  Highlight: "Resaltar",
+  "Clear highlight": "Quitar resaltado",
   Save: "Guardar",
   Note: "Nota",
   "Copied to clipboard": "Copiado al portapapeles",
@@ -205,6 +224,11 @@ const ES: Record<string, string> = {
   "Topical scripture chains. Each topic's key verse is highlighted in the Read tab with a ¹ footnote linking the rest of the chain.":
     "Cadenas de escritura por tema. El versículo clave de cada tema se resalta en la pestaña Leer con una nota ¹ que enlaza el resto de la cadena.",
   "View in Reader": "Ver en el Lector",
+  precepts: "preceptos",
+  Back: "Atrás",
+  "Browse all precepts": "Ver todos los preceptos",
+  "This verse is a key verse in several precept topics. Choose one:":
+    "Este versículo es clave en varios temas de preceptos. Elige uno:",
   "A–Z TOPICS": "TEMAS A–Z",
   "FEATURED TOPICS": "TEMAS DESTACADOS",
   "Hand-picked topics to start with, grouped by theme.": "Temas seleccionados para comenzar, agrupados por tema.",
@@ -228,8 +252,8 @@ const ES: Record<string, string> = {
     "La pantalla de inicio al abrir la aplicación — tu capítulo actual, marcadores y notas de un vistazo, la escritura de hoy, y colecciones destacadas de Twelve Scents Publishing.",
   "A daily home base with a greeting, the verse of the day, and quick links back into your reading. It refreshes with a new verse each time you open it.":
     "Una base diaria con un saludo, el versículo del día, y accesos rápidos a tu lectura. Se actualiza con un nuevo versículo cada vez que la abres.",
-  "Tap the chapter name at the top to jump to any book or chapter. Tap a verse to highlight, bookmark, add a note, copy, or share it. A small ¹ next to a verse links to a Precepts topic for related cross-references.":
-    "Toca el nombre del capítulo arriba para ir a cualquier libro o capítulo. Toca un versículo para resaltarlo, guardarlo, añadir una nota, copiarlo o compartirlo. Un pequeño ¹ junto a un versículo enlaza a un tema de Preceptos con referencias cruzadas relacionadas.",
+  "Tap the chapter name at the top to jump to any book or chapter. Swipe left or right on the text to move to the next or previous chapter. Tap a verse to highlight, bookmark, add a note, copy, or share it. A small ¹ next to a verse links to a Precepts topic for related cross-references.":
+    "Toca el nombre del capítulo arriba para ir a cualquier libro o capítulo. Desliza el texto a la izquierda o a la derecha para pasar al capítulo siguiente o anterior. Toca un versículo para resaltarlo, guardarlo, añadir una nota, copiarlo o compartirlo. Un pequeño ¹ junto a un versículo enlaza a un tema de Preceptos con referencias cruzadas relacionadas.",
   "Search the full text of every verse across the KJV and Apocrypha. Narrow results to specific books when you need to.":
     "Busca en el texto completo de cada versículo en la Biblia y los Apócrifos. Filtra los resultados a libros específicos cuando lo necesites.",
   "The Chronological 1-Year plan, the Sin-Specific Battles topical study, and the topic-based study plans all live here, with progress you can check off as you go.":
@@ -305,6 +329,7 @@ const ES: Record<string, string> = {
 const HT: Record<string, string> = {
   // Nav / drawer
   "Publisher's Desk": "Biwo Editè a",
+  Home: "Akèy",
   Today: "Jodi a",
   Read: "Li",
   Search: "Chèche",
@@ -315,9 +340,20 @@ const HT: Record<string, string> = {
   Settings: "Paramèt",
   Menu: "Meni",
   "Reading Plans": "Plan Lekti",
-  "Upgrade to Premium": "Pase nan Premium",
+  "Unlock Sacred Scroll": "Debloke Sacred Scroll",
   "Unlock commentary, study tools, and more.": "Debloke kòmantè, zouti etid, ak plis ankò.",
   "Upgrade Now": "Mete Nivo Kounye a",
+  "Go deeper in your study, personalize your experience, and support Sacred Scroll.":
+    "Ale pi fon nan etid ou, pèsonalize eksperyans ou, epi sipòte Sacred Scroll.",
+  "Every Precepts topic — all 442, A to Z": "Chak sijè nan Presept yo — tout 442, de A rive Z",
+  "All 4 specialized study plans": "Tout 4 plan etid espesyalize yo",
+  "Twelve Scents Narrator audio": "Odyo Naratè Twelve Scents la",
+  "Upload your own chapter narrations": "Telechaje pwòp naratif chapit pa w yo",
+  "An ad-free Desk": "Yon Biwo san reklam",
+  "This precept chain is locked. Tap to unlock.":
+    "Chèn presept sa a bloke. Peze pou debloke l.",
+  "Maybe Later": "Petèt Pita",
+  "Unlocked — thank you!": "Debloke — mèsi!",
   "✧ DAILY VERSE ✧": "✧ VÈSÈ CHAK JOU ✧",
   "Thy word is a lamp unto my feet, and a light unto my path.":
     "Pawòl ou se yon lanp pou pye mwen, se yon limyè nan chemen mwen.",
@@ -415,6 +451,13 @@ const HT: Record<string, string> = {
   // Verse action bar
   "Close ✕": "Fèmen ✕",
   Copy: "Kopye",
+  "Select more verses": "Chwazi plis vèsè",
+  "Tap verses to add or remove them.": "Tape vèsè pou ajoute oswa retire yo.",
+  verse: "vèsè",
+  verses: "vèsè",
+  Done: "Fini",
+  Highlight: "Make",
+  "Clear highlight": "Retire make a",
   Save: "Anrejistre",
   Note: "Nòt",
   "Copied to clipboard": "Kopye nan papye clip",
@@ -503,6 +546,11 @@ const HT: Record<string, string> = {
   "Topical scripture chains. Each topic's key verse is highlighted in the Read tab with a ¹ footnote linking the rest of the chain.":
     "Chèn ekriti pa sijè. Vèsè kle chak sijè make nan tab Li a ak yon nòt ¹ ki lye rès chèn nan.",
   "View in Reader": "Gade nan Lektè a",
+  precepts: "prensip",
+  Back: "Retounen",
+  "Browse all precepts": "Gade tout prensip yo",
+  "This verse is a key verse in several precept topics. Choose one:":
+    "Vèsè sa a se yon vèsè kle nan plizyè sijè prensip. Chwazi youn:",
   "A–Z TOPICS": "SIJÈ A–Z",
   "FEATURED TOPICS": "SIJÈ VEDÈT",
   "Hand-picked topics to start with, grouped by theme.": "Sijè chwazi espesyalman pou kòmanse, gwoupe pa tèm.",
@@ -526,8 +574,8 @@ const HT: Record<string, string> = {
     "Ekran ki parèt lè ou premye ouvri app la — chapit aktyèl ou, siyè ak nòt ou yo yon sèl kout je, ekriti jodi a, ak koleksyon vedèt Twelve Scents Publishing.",
   "A daily home base with a greeting, the verse of the day, and quick links back into your reading. It refreshes with a new verse each time you open it.":
     "Yon baz chak jou ak yon salitasyon, vèsè jou a, ak lyen rapid pou tounen nan lekti ou. Li chanje ak yon nouvo vèsè chak fwa ou louvri li.",
-  "Tap the chapter name at the top to jump to any book or chapter. Tap a verse to highlight, bookmark, add a note, copy, or share it. A small ¹ next to a verse links to a Precepts topic for related cross-references.":
-    "Peze non chapit la anlè a pou ale nan nenpòt liv oswa chapit. Peze yon vèsè pou siyale li, anrejistre li, ajoute yon nòt, kopye li, oswa pataje li. Yon ti ¹ akote yon vèsè lye ak yon sijè Prensip pou referans ki gen rapò.",
+  "Tap the chapter name at the top to jump to any book or chapter. Swipe left or right on the text to move to the next or previous chapter. Tap a verse to highlight, bookmark, add a note, copy, or share it. A small ¹ next to a verse links to a Precepts topic for related cross-references.":
+    "Peze non chapit la anlè a pou ale nan nenpòt liv oswa chapit. Glise tèks la sou bò goch oswa dwat pou ale nan chapit swivan an oswa chapit anvan an. Peze yon vèsè pou siyale li, anrejistre li, ajoute yon nòt, kopye li, oswa pataje li. Yon ti ¹ akote yon vèsè lye ak yon sijè Prensip pou referans ki gen rapò.",
   "Search the full text of every verse across the KJV and Apocrypha. Narrow results to specific books when you need to.":
     "Chèche tout tèks chak vèsè nan Bib la ak Apokrif yo. Filtre rezilta yo pou liv espesifik lè ou bezwen.",
   "The Chronological 1-Year plan, the Sin-Specific Battles topical study, and the topic-based study plans all live here, with progress you can check off as you go.":

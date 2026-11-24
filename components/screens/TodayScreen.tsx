@@ -42,8 +42,7 @@ export function TodayScreen() {
         <LinearGradient
           colors={["transparent", palette.bg]}
           locations={[0, 1]}
-          style={[styles.mastheadFade, { height: mastheadHeight * 0.14 }]}
-          pointerEvents="none"
+          style={[styles.mastheadFade, { height: mastheadHeight * 0.14, pointerEvents: "none" }]}
         />
       </View>
 

@@ -11,11 +11,11 @@ const TWELVE_SCENTS_NARRATOR: Narrator = {
   id: "twelve-scents-v1",
   source: "premium",
   name: "Twelve Scents Narrator",
-  description: "Premium narration, streamed or downloaded",
+  description: "Twelve Scents narration, streamed or downloaded",
 };
 
 export function NarratorPickerView({ visible, onClose }: { visible: boolean; onClose: () => void }) {
-  const { palette, narration, t } = useApp();
+  const { palette, narration, requirePremium, isPremium, t } = useApp();
   const [appleVoices, setAppleVoices] = useState<Narrator[] | null>(null);
 
   useEffect(() => {
@@ -27,6 +27,14 @@ export function NarratorPickerView({ visible, onClose }: { visible: boolean; onC
     narration.selectNarrator(pick);
     narration.switchSource(pick.source);
     onClose();
+  }
+
+  function chooseTwelveScents() {
+    if (!isPremium) {
+      requirePremium(() => {});
+      return;
+    }
+    choose(TWELVE_SCENTS_NARRATOR);
   }
 
   const activeId = narration.narrator?.id ?? (narration.source === "apple" ? undefined : TWELVE_SCENTS_NARRATOR.id);
@@ -42,7 +50,8 @@ export function NarratorPickerView({ visible, onClose }: { visible: boolean; onC
         <Row
           narrator={TWELVE_SCENTS_NARRATOR}
           active={activeId === TWELVE_SCENTS_NARRATOR.id && narration.source !== "apple"}
-          onPress={() => choose(TWELVE_SCENTS_NARRATOR)}
+          locked={!isPremium}
+          onPress={chooseTwelveScents}
         />
 
         <View style={[styles.divider, { backgroundColor: palette.divider }]} />
@@ -69,7 +78,17 @@ export function NarratorPickerView({ visible, onClose }: { visible: boolean; onC
   );
 }
 
-function Row({ narrator, active, onPress }: { narrator: Narrator; active: boolean; onPress: () => void }) {
+function Row({
+  narrator,
+  active,
+  locked,
+  onPress,
+}: {
+  narrator: Narrator;
+  active: boolean;
+  locked?: boolean;
+  onPress: () => void;
+}) {
   const { palette } = useApp();
   return (
     <Pressable onPress={onPress} style={styles.row} accessibilityLabel={narrator.name} accessibilityRole="button">
@@ -81,6 +100,7 @@ function Row({ narrator, active, onPress }: { narrator: Narrator; active: boolea
           {narrator.description}
         </AppText>
       </View>
+      {locked ? <Ionicons name="lock-closed" size={18} color={palette.textDim} /> : null}
       {active ? <Ionicons name="checkmark-circle" size={20} color={palette.accent} /> : null}
     </Pressable>
   );

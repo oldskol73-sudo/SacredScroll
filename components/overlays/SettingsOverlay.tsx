@@ -2,29 +2,12 @@ import React from "react";
 import { View, Modal, Pressable, ScrollView, StyleSheet, Linking } from "react-native";
 import { OverlaySafeArea } from "@/components/OverlaySafeArea";
 import { Ionicons } from "@expo/vector-icons";
+import * as DocumentPicker from "expo-document-picker";
+import * as StoreReview from "expo-store-review";
 import { useApp } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
 import { displayRef } from "@/constants/bible/books";
 import { READER_FONT_SIZES, ATMOSPHERES, ATMOSPHERE_ORDER } from "@/constants/theme";
-
-// expo-store-review and expo-document-picker both throw at require() time
-// when their native module isn't present in the running binary (same failure
-// mode as expo-speech elsewhere in this app). A plain top-level `import`
-// would crash the whole app on launch since this overlay is mounted
-// unconditionally in AppShell; routing them through require() inside
-// try/catch lets that failure degrade to a toast instead.
-let StoreReview: typeof import("expo-store-review") | null;
-try {
-  StoreReview = require("expo-store-review");
-} catch {
-  StoreReview = null;
-}
-let DocumentPicker: typeof import("expo-document-picker") | null;
-try {
-  DocumentPicker = require("expo-document-picker");
-} catch {
-  DocumentPicker = null;
-}
 
 export function SettingsOverlay() {
   const {
@@ -33,6 +16,8 @@ export function SettingsOverlay() {
     setShowSettings,
     notificationsOn,
     toggleNotifications,
+    redLetterEnabled,
+    toggleRedLetter,
     atmosphere,
     setAtmosphere,
     readerFontSize,
@@ -46,6 +31,9 @@ export function SettingsOverlay() {
     setShowHowToUse,
     language,
     setLanguage,
+    replayOnboarding,
+    requirePremium,
+    isPremium,
     t,
   } = useApp();
 
@@ -53,8 +41,8 @@ export function SettingsOverlay() {
   const narration = narrations.narrationFor(location.book, location.chapter);
 
   async function onUpload() {
-    if (!DocumentPicker) {
-      showToast(t("Upload unavailable on this build"));
+    if (!isPremium) {
+      requirePremium(() => {});
       return;
     }
     const result = await DocumentPicker.getDocumentAsync({ type: "audio/*" });
@@ -83,7 +71,7 @@ export function SettingsOverlay() {
   }
 
   async function onRateUs() {
-    if (StoreReview && (await StoreReview.hasAction())) {
+    if (await StoreReview.hasAction()) {
       StoreReview.requestReview();
     } else {
       showToast(t("Coming soon"));
@@ -198,12 +186,21 @@ export function SettingsOverlay() {
 
           <SectionLabel>{t("Font")}</SectionLabel>
           <View style={[styles.card, { backgroundColor: palette.card, marginBottom: 18 }]}>
-            <Pressable onPress={nextFontSize} style={[styles.optionRow, { borderBottomWidth: 0 }]}>
+            <Pressable onPress={nextFontSize} style={[styles.optionRow, { borderBottomColor: palette.divider }]}>
               <AppText size={15}>{t("Reader Font Size")}</AppText>
               <AppText size={13} dim>
                 {readerFontSize}px ›
               </AppText>
             </Pressable>
+            <View style={[styles.optionRow, { borderBottomWidth: 0 }]}>
+              <View style={{ flex: 1, paddingRight: 12 }}>
+                <AppText size={15}>{t("Red Letter")}</AppText>
+                <AppText size={12} dim style={{ marginTop: 2 }}>
+                  {t("Words of Christ in red")}
+                </AppText>
+              </View>
+              <Switch value={redLetterEnabled} onChange={toggleRedLetter} />
+            </View>
           </View>
 
           <SectionLabel>{t("Audio Narration")}</SectionLabel>
@@ -218,8 +215,9 @@ export function SettingsOverlay() {
               <Pressable
                 onPress={onUpload}
                 disabled={!userId}
-                style={[styles.pillBtn, { backgroundColor: palette.accent }]}
+                style={[styles.pillBtn, { backgroundColor: palette.accent, flexDirection: "row", gap: 6, alignItems: "center" }]}
               >
+                {!isPremium ? <Ionicons name="lock-closed" size={12} color="#fff" /> : null}
                 <AppText variant="sansBold" size={12} color="#fff">
                   {t("Upload Recording")}
                 </AppText>
@@ -253,6 +251,9 @@ export function SettingsOverlay() {
           <View style={[styles.card, { backgroundColor: palette.card }]}>
             <Pressable onPress={onMoreApp} style={[styles.optionRow, { borderBottomColor: palette.divider }]}>
               <AppText size={15}>{t("Explore the Collection")}</AppText>
+            </Pressable>
+            <Pressable onPress={replayOnboarding} style={[styles.optionRow, { borderBottomColor: palette.divider }]}>
+              <AppText size={15}>{t("Replay Onboarding Tour")}</AppText>
             </Pressable>
             <Pressable onPress={onHelp} style={styles.optionRow}>
               <AppText size={15}>{t("Help")}</AppText>

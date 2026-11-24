@@ -3,7 +3,7 @@ import { View, Modal, Pressable, ScrollView, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OverlaySafeArea } from "@/components/OverlaySafeArea";
 import { Ionicons } from "@expo/vector-icons";
-import { useApp } from "@/context/AppContext";
+import { useApp, PreceptFocus } from "@/context/AppContext";
 import { AppText } from "@/components/AppText";
 import { PRECEPT_TOPICS, PreceptTopic } from "@/constants/bible/precepts";
 import { resolveBookName } from "@/constants/bible/books";
@@ -19,7 +19,15 @@ const FEATURED_COUNT = 18;
 const FEATURED_GROUPS: { label: string; titles: string[] }[] = [
   {
     label: "Identity",
-    titles: ["Who Are the Saints?", '"Color" in the Bible', "Oppression", "The World", "Whosoever", "Modesty & Dress", "The Day of Destruction"],
+    titles: [
+      "Who Are the Saints?",
+      '"Color" in the Bible',
+      "Oppression",
+      "The World",
+      "Whosoever",
+      "Modesty & Dress",
+      "The Day of Destruction",
+    ],
   },
   { label: "Relationships & Family", titles: ["Marriage", "Divorce", "Hatred", "What Is Love?"] },
   { label: "Bible Study", titles: ["Study the Whole Bible", "How to Read the Bible", "Study to Show Thyself Approved"] },
@@ -33,9 +41,42 @@ function parseRef(ref: string): { book: string; chapter: number; verse: number }
 }
 
 export function PreceptsOverlay() {
-  const { palette, showPrecepts, setShowPrecepts, goTo, selectVerse, t } = useApp();
+  const {
+    palette,
+    showPrecepts,
+    setShowPrecepts,
+    preceptFocus,
+    setPreceptFocus,
+    goTo,
+    selectVerse,
+    requirePremium,
+    isPremium,
+    t,
+  } = useApp();
+  const [expandedTopic, setExpandedTopic] = useState<string | null>(null);
   const [expandedLetter, setExpandedLetter] = useState<string | null>(null);
-  const [selectedTopic, setSelectedTopic] = useState<PreceptTopic | null>(null);
+  const [selectedFeatured, setSelectedFeatured] = useState<PreceptTopic | null>(null);
+  // Tied to the focus it was chosen under, so opening a different verse starts at its topic list.
+  const [chosenTopic, setChosenTopic] = useState<{ focus: PreceptFocus; key: string } | null>(null);
+  const focusTopicKey = chosenTopic && chosenTopic.focus === preceptFocus ? chosenTopic.key : null;
+  const setFocusTopicKey = (key: string | null) =>
+    setChosenTopic(key && preceptFocus ? { focus: preceptFocus, key } : null);
+
+  const focusTopics = preceptFocus?.topics ?? [];
+  const activeFocusTopic =
+    focusTopics.length === 1 ? focusTopics[0] : (focusTopics.find((topic) => topic.key === focusTopicKey) ?? null);
+
+  // From a chosen topic, back returns to the verse's topic list; otherwise it closes.
+  function onBack() {
+    if (focusTopics.length > 1 && activeFocusTopic) setFocusTopicKey(null);
+    else setShowPrecepts(false);
+  }
+
+  // Footnotes in Read and "Learn more" in Calendar can deep-link to ANY
+  // topic, not just the 18 featured ones — so verse-focus mode needs the
+  // same gate as the A-Z list, keyed off this same featured set.
+  const featuredKeys = useMemo(() => new Set(PRECEPT_TOPICS.slice(0, FEATURED_COUNT).map((topic) => topic.key)), []);
+  const isTopicLocked = (key: string) => !isPremium && !featuredKeys.has(key);
 
   const featuredGroups = useMemo(() => {
     const featured = PRECEPT_TOPICS.slice(0, FEATURED_COUNT);
@@ -64,17 +105,18 @@ export function PreceptsOverlay() {
       }));
   }, []);
 
-  // TopicSheet is a Modal NESTED inside this component's own Modal.
+  // FeaturedTopicSheet is a Modal NESTED inside this component's own Modal.
   // Confirmed on-device: dismissing a nested Modal and its parent Modal in the
   // same tick (even via two separate setState calls, since React batches them
   // into one commit) strands the screen on a black, undismissable overlay on
   // iOS -- the two native dismissals collide. A single (non-nested) Modal
   // closing alongside goTo()/selectVerse is safe on its own (proven by the
-  // Book Picker). So the nested sheet must fully close BEFORE the outer Modal
-  // starts closing -- never in the same render.
+  // Book Picker and the plain A-Z topic list, which do exactly that). So the
+  // nested sheet must fully close BEFORE the outer Modal starts closing --
+  // never in the same render.
   function closePrecepts() {
-    if (selectedTopic) {
-      setSelectedTopic(null);
+    if (selectedFeatured) {
+      setSelectedFeatured(null);
       setTimeout(() => setShowPrecepts(false), 350);
     } else {
       setShowPrecepts(false);
@@ -95,14 +137,19 @@ export function PreceptsOverlay() {
   }
 
   return (
-    <Modal visible={showPrecepts} animationType="fade" onRequestClose={() => setShowPrecepts(false)}>
+    <Modal visible={showPrecepts} animationType="fade" onRequestClose={onBack}>
       <OverlaySafeArea style={[styles.container, { backgroundColor: palette.bg }]}>
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView
+          key={preceptFocus ? `focus:${preceptFocus.verseRef}:${activeFocusTopic?.key ?? ""}` : "all"}
+          contentContainerStyle={styles.content}
+        >
           <View style={styles.headerRow}>
             <Pressable
-              onPress={() => setShowPrecepts(false)}
+              onPress={onBack}
               style={[styles.backBtn, { backgroundColor: palette.cardAlt }]}
               hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={t("Back")}
             >
               <Ionicons name="chevron-back" size={20} color={palette.text} />
             </Pressable>
@@ -110,76 +157,106 @@ export function PreceptsOverlay() {
               {t("Precepts")}
             </AppText>
           </View>
-          <AppText dim size={14} style={{ lineHeight: 20, marginVertical: 14 }}>
-            {t(
-              "Topical scripture chains. Each topic's key verse is highlighted in the Read tab with a ¹ footnote linking the rest of the chain."
-            )}
-          </AppText>
 
-          <AppText variant="sansExtraBold" size={13} dim style={{ letterSpacing: 1, marginBottom: 4 }}>
-            {t("FEATURED TOPICS")}
-          </AppText>
-          <AppText dim size={12.5} style={{ lineHeight: 17, marginBottom: 14 }}>
-            {t("Hand-picked topics to start with, grouped by theme.")}
-          </AppText>
-
-          {featuredGroups.map((group) => (
-            <View key={group.label} style={{ marginBottom: 18 }}>
-              <AppText variant="sansBold" size={12.5} color={palette.accent} style={{ marginBottom: 8 }}>
-                {t(group.label)}
+          {preceptFocus ? (
+            <VerseFocus
+              verseRef={preceptFocus.verseRef}
+              topics={focusTopics}
+              activeTopic={activeFocusTopic}
+              isTopicLocked={isTopicLocked}
+              onUnlock={() => requirePremium(() => {})}
+              palette={palette}
+              t={t}
+              onChooseTopic={setFocusTopicKey}
+              onViewRef={onViewRef}
+              onViewInReader={onViewInReader}
+              onBrowseAll={() => setPreceptFocus(null)}
+            />
+          ) : (
+            <>
+              <AppText dim size={14} style={{ lineHeight: 20, marginVertical: 14 }}>
+                {t(
+                  "Topical scripture chains. Each topic's key verse is highlighted in the Read tab with a ¹ footnote linking the rest of the chain.",
+                )}
               </AppText>
-              <View style={styles.grid}>
-                {group.topics.map((topic) => (
-                  <FeaturedTile key={topic.key} topic={topic} palette={palette} onPress={() => setSelectedTopic(topic)} />
-                ))}
-              </View>
-            </View>
-          ))}
 
-          <AppText variant="sansExtraBold" size={13} dim style={{ letterSpacing: 1, marginTop: 6, marginBottom: 10 }}>
-            {t("A–Z TOPICS")}
-          </AppText>
+              <AppText variant="sansExtraBold" size={13} dim style={{ letterSpacing: 1, marginBottom: 4 }}>
+                {t("FEATURED TOPICS")}
+              </AppText>
+              <AppText dim size={12.5} style={{ lineHeight: 17, marginBottom: 14 }}>
+                {t("Hand-picked topics to start with, grouped by theme.")}
+              </AppText>
 
-          <View style={{ gap: 8 }}>
-            {letterGroups.map(({ letter, topics }) => {
-              const isLetterExpanded = expandedLetter === letter;
-              return (
-                <View key={letter}>
-                  <Pressable
-                    onPress={() => setExpandedLetter(isLetterExpanded ? null : letter)}
-                    style={[styles.letterRow, { backgroundColor: palette.cardAlt }]}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${letter}, ${topics.length} ${t("topics")}`}
-                  >
-                    <AppText variant="sansExtraBold" size={17} color={palette.accent} style={{ width: 26 }}>
-                      {letter}
-                    </AppText>
-                    <AppText dim size={12.5} style={{ flex: 1 }}>
-                      {topics.length} {t("topics")}
-                    </AppText>
-                    <AppText dim size={13}>
-                      {isLetterExpanded ? "⌃" : "⌄"}
-                    </AppText>
-                  </Pressable>
-                  {isLetterExpanded ? (
-                    <View style={{ gap: 8, marginTop: 8 }}>
-                      {topics.map((topic) => (
-                        <TopicRow key={topic.key} topic={topic} palette={palette} onPress={() => setSelectedTopic(topic)} />
-                      ))}
-                    </View>
-                  ) : null}
+              {featuredGroups.map((group) => (
+                <View key={group.label} style={{ marginBottom: 18 }}>
+                  <AppText variant="sansBold" size={12.5} color={palette.accent} style={{ marginBottom: 8 }}>
+                    {t(group.label)}
+                  </AppText>
+                  <View style={styles.grid}>
+                    {group.topics.map((topic) => (
+                      <FeaturedTile key={topic.key} topic={topic} palette={palette} onPress={() => setSelectedFeatured(topic)} />
+                    ))}
+                  </View>
                 </View>
-              );
-            })}
-          </View>
+              ))}
+
+              <AppText variant="sansExtraBold" size={13} dim style={{ letterSpacing: 1, marginTop: 6, marginBottom: 10 }}>
+                {t("A–Z TOPICS")}
+              </AppText>
+
+              <View style={{ gap: 8 }}>
+                {letterGroups.map(({ letter, topics }) => {
+                  const isLetterExpanded = expandedLetter === letter;
+                  return (
+                    <View key={letter}>
+                      <Pressable
+                        onPress={() => setExpandedLetter(isLetterExpanded ? null : letter)}
+                        style={[styles.letterRow, { backgroundColor: palette.cardAlt }]}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${letter}, ${topics.length} ${t("topics")}`}
+                      >
+                        <AppText variant="sansExtraBold" size={17} color={palette.accent} style={{ width: 26 }}>
+                          {letter}
+                        </AppText>
+                        <AppText dim size={12.5} style={{ flex: 1 }}>
+                          {topics.length} {t("topics")}
+                        </AppText>
+                        <AppText dim size={13}>
+                          {isLetterExpanded ? "⌃" : "⌄"}
+                        </AppText>
+                      </Pressable>
+                      {isLetterExpanded ? (
+                        <View style={{ gap: 8, marginTop: 8 }}>
+                          {topics.map((topic) => (
+                            <TopicCard
+                              key={topic.key}
+                              topic={topic}
+                              palette={palette}
+                              t={t}
+                              expanded={expandedTopic === topic.key}
+                              onToggle={() =>
+                                requirePremium(() => setExpandedTopic(expandedTopic === topic.key ? null : topic.key))
+                              }
+                              onViewRef={onViewRef}
+                              onViewInReader={onViewInReader}
+                            />
+                          ))}
+                        </View>
+                      ) : null}
+                    </View>
+                  );
+                })}
+              </View>
+            </>
+          )}
         </ScrollView>
       </OverlaySafeArea>
 
-      <TopicSheet
-        topic={selectedTopic}
+      <FeaturedTopicSheet
+        topic={selectedFeatured}
         palette={palette}
         t={t}
-        onClose={() => setSelectedTopic(null)}
+        onClose={() => setSelectedFeatured(null)}
         onViewRef={onViewRef}
         onViewInReader={onViewInReader}
       />
@@ -202,7 +279,7 @@ function FeaturedTile({ topic, palette, onPress }: { topic: PreceptTopic; palett
   );
 }
 
-function TopicSheet({
+function FeaturedTopicSheet({
   topic,
   palette,
   t,
@@ -227,7 +304,11 @@ function TopicSheet({
         </AppText>
         <ScrollView style={{ maxHeight: 360 }} contentContainerStyle={{ gap: 8 }}>
           {topic?.refs.map((r) => (
-            <Pressable key={r.ref} onPress={() => onViewRef(r.ref)} style={[styles.refCard, { backgroundColor: palette.cardAlt }]}>
+            <Pressable
+              key={r.ref}
+              onPress={() => onViewRef(r.ref)}
+              style={[styles.refCard, { backgroundColor: palette.cardAlt }]}
+            >
               <AppText variant="sansExtraBold" size={12} color={palette.accent} style={{ marginBottom: 3 }}>
                 {r.ref}
               </AppText>
@@ -250,19 +331,174 @@ function TopicSheet({
   );
 }
 
-function TopicRow({ topic, palette, onPress }: { topic: PreceptTopic; palette: Palette; onPress: () => void }) {
+function VerseFocus({
+  verseRef,
+  topics,
+  activeTopic,
+  isTopicLocked,
+  onUnlock,
+  palette,
+  t,
+  onChooseTopic,
+  onViewRef,
+  onViewInReader,
+  onBrowseAll,
+}: {
+  verseRef: string;
+  topics: PreceptTopic[];
+  activeTopic: PreceptTopic | null;
+  isTopicLocked: (key: string) => boolean;
+  onUnlock: () => void;
+  palette: Palette;
+  t: (s: string) => string;
+  onChooseTopic: (key: string) => void;
+  onViewRef: (ref: string) => void;
+  onViewInReader: (anchor: { book: string; chapter: number }) => void;
+  onBrowseAll: () => void;
+}) {
+  const activeLocked = !!activeTopic && isTopicLocked(activeTopic.key);
   return (
-    <Pressable
-      onPress={onPress}
-      style={[styles.topicRow, { backgroundColor: palette.card }]}
-      accessibilityRole="button"
-      accessibilityLabel={topic.title}
-    >
-      <AppText variant="sansBold" size={14.5} style={{ flex: 1 }}>
-        {topic.title}
+    <View style={{ marginTop: 18, gap: 10 }}>
+      <AppText variant="sansExtraBold" size={12} color={palette.accent} style={{ letterSpacing: 1 }}>
+        {verseRef.toUpperCase()}
       </AppText>
-      <Ionicons name="chevron-forward" size={16} color={palette.accent} />
-    </Pressable>
+
+      {activeTopic ? (
+        <>
+          <View>
+            <AppText variant="serifBold" size={22}>
+              {activeTopic.title}
+            </AppText>
+            <AppText dim size={12.5} style={{ marginTop: 2 }}>
+              {activeTopic.refs.length} {t("precepts")}
+            </AppText>
+          </View>
+          {activeLocked ? (
+            <Pressable
+              onPress={onUnlock}
+              style={[styles.refCard, { backgroundColor: palette.cardAlt, alignItems: "center", gap: 6 }]}
+              accessibilityRole="button"
+            >
+              <Ionicons name="lock-closed" size={18} color={palette.accent} />
+              <AppText size={13} dim style={{ textAlign: "center", lineHeight: 19 }}>
+                {t("This precept chain is locked. Tap to unlock.")}
+              </AppText>
+            </Pressable>
+          ) : (
+            <>
+              {activeTopic.refs.map((r) => (
+                <Pressable
+                  key={r.ref}
+                  onPress={() => onViewRef(r.ref)}
+                  style={[styles.refCard, { backgroundColor: palette.cardAlt }]}
+                  accessibilityRole="button"
+                >
+                  <AppText variant="sansExtraBold" size={12} color={palette.accent} style={{ marginBottom: 3 }}>
+                    {r.ref}
+                  </AppText>
+                  <AppText size={13} style={{ lineHeight: 19 }}>
+                    {r.note}
+                  </AppText>
+                </Pressable>
+              ))}
+              <Pressable
+                onPress={() => onViewInReader(activeTopic.anchor)}
+                style={[styles.viewBtn, { backgroundColor: palette.accent }]}
+                accessibilityRole="button"
+              >
+                <AppText variant="sansBold" size={12} color="#fff">
+                  {t("View in Reader")}
+                </AppText>
+              </Pressable>
+            </>
+          )}
+        </>
+      ) : (
+        <>
+          <AppText dim size={13.5} style={{ lineHeight: 19 }}>
+            {t("This verse is a key verse in several precept topics. Choose one:")}
+          </AppText>
+          {topics.map((topic) => (
+            <Pressable
+              key={topic.key}
+              onPress={() => onChooseTopic(topic.key)}
+              style={[styles.card, styles.topicRow, { backgroundColor: palette.card }]}
+              accessibilityRole="button"
+              accessibilityLabel={`${topic.title}, ${topic.refs.length} ${t("precepts")}`}
+            >
+              <AppText variant="sansBold" size={15} style={{ flex: 1 }}>
+                {topic.title}
+              </AppText>
+              {isTopicLocked(topic.key) ? <Ionicons name="lock-closed" size={13} color={palette.textDim} /> : null}
+              <AppText dim size={12.5}>
+                {topic.refs.length}
+              </AppText>
+              <Ionicons name="chevron-forward" size={16} color={palette.textDim} />
+            </Pressable>
+          ))}
+        </>
+      )}
+
+      <Pressable onPress={onBrowseAll} style={{ alignSelf: "center", paddingVertical: 12 }} accessibilityRole="button">
+        <AppText variant="sansBold" size={13} color={palette.accent}>
+          {t("Browse all precepts")}
+        </AppText>
+      </Pressable>
+    </View>
+  );
+}
+
+function TopicCard({
+  topic,
+  palette,
+  t,
+  expanded,
+  onToggle,
+  onViewRef,
+  onViewInReader,
+}: {
+  topic: PreceptTopic;
+  palette: Palette;
+  t: (s: string) => string;
+  expanded: boolean;
+  onToggle: () => void;
+  onViewRef: (ref: string) => void;
+  onViewInReader: (anchor: { book: string; chapter: number }) => void;
+}) {
+  return (
+    <View style={[styles.card, { backgroundColor: palette.card }]}>
+      <Pressable onPress={onToggle} style={styles.rowBetween}>
+        <AppText variant="sansBold" size={15}>
+          {topic.title}
+        </AppText>
+        <AppText dim size={13}>
+          {expanded ? "⌃" : "⌄"}
+        </AppText>
+      </Pressable>
+      {expanded ? (
+        <View style={{ gap: 8, paddingTop: 4 }}>
+          {topic.refs.map((r) => (
+            <Pressable
+              key={r.ref}
+              onPress={() => onViewRef(r.ref)}
+              style={[styles.refCard, { backgroundColor: palette.cardAlt }]}
+            >
+              <AppText variant="sansExtraBold" size={12} color={palette.accent} style={{ marginBottom: 3 }}>
+                {r.ref}
+              </AppText>
+              <AppText size={13} style={{ lineHeight: 19 }}>
+                {r.note}
+              </AppText>
+            </Pressable>
+          ))}
+          <Pressable onPress={() => onViewInReader(topic.anchor)} style={[styles.viewBtn, { backgroundColor: palette.accent }]}>
+            <AppText variant="sansBold" size={12} color="#fff">
+              {t("View in Reader")}
+            </AppText>
+          </Pressable>
+        </View>
+      ) : null}
+    </View>
   );
 }
 
@@ -271,10 +507,12 @@ const styles = StyleSheet.create({
   content: { paddingTop: 16, paddingHorizontal: 20, paddingBottom: 30 },
   headerRow: { flexDirection: "row", alignItems: "center", gap: 14 },
   backBtn: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  card: { borderRadius: 14, padding: 16, gap: 12 },
+  topicRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   refCard: { borderRadius: 12, padding: 11 },
   viewBtn: { alignSelf: "flex-start", borderRadius: 10, paddingVertical: 9, paddingHorizontal: 16, marginTop: 2 },
   letterRow: { flexDirection: "row", alignItems: "center", borderRadius: 14, padding: 14 },
-  topicRow: { flexDirection: "row", alignItems: "center", borderRadius: 12, padding: 14, gap: 10 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   tile: {
     width: "47%",

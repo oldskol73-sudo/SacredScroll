@@ -15,6 +15,7 @@ import { ReadScreen } from "@/components/screens/ReadScreen";
 import { SearchScreen } from "@/components/screens/SearchScreen";
 import { PlansScreen } from "@/components/screens/PlansScreen";
 import { LibraryScreen } from "@/components/screens/LibraryScreen";
+import { CalendarScreen } from "@/components/screens/CalendarScreen";
 import { ChronoDetailOverlay } from "@/components/overlays/ChronoDetailOverlay";
 import { SinBattlesOverlay } from "@/components/overlays/SinBattlesOverlay";
 import { PreceptsOverlay } from "@/components/overlays/PreceptsOverlay";
@@ -24,11 +25,14 @@ import { SettingsOverlay } from "@/components/overlays/SettingsOverlay";
 import { HowToUseOverlay } from "@/components/overlays/HowToUseOverlay";
 import { AboutOverlay } from "@/components/overlays/AboutOverlay";
 import { AboutTranslationOverlay } from "@/components/overlays/AboutTranslationOverlay";
+import { OnboardingOverlay } from "@/components/overlays/OnboardingOverlay";
+import { PaywallOverlay } from "@/components/overlays/PaywallOverlay";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { MiniPlayer } from "@/components/MiniPlayer";
+import { MultiVerseBar } from "@/components/MultiVerseBar";
 
 export function AppShell() {
-  const { isLoading, palette, tab, desk, showSinBattlesMark, setShowSinBattlesMark, showSinBattlesRomans, setShowSinBattlesRomans } = useApp();
+  const { isLoading, palette, tab, desk, multiVerses, showSinBattlesMark, setShowSinBattlesMark, showSinBattlesRomans, setShowSinBattlesRomans } = useApp();
 
   if (isLoading) {
     return (
@@ -57,11 +61,12 @@ export function AppShell() {
                 {tab === "search" && <SearchScreen />}
                 {tab === "plans" && <PlansScreen />}
                 {tab === "library" && <LibraryScreen />}
+                {tab === "calendar" && <CalendarScreen />}
               </View>
             </>
           )}
           <MiniPlayer />
-          <FooterBar />
+          {tab === "read" && multiVerses ? <MultiVerseBar /> : <FooterBar />}
         </SafeAreaView>
       )}
 
@@ -81,6 +86,8 @@ export function AppShell() {
       <AboutTranslationOverlay />
       <AudioPlayer />
       <Toast />
+      <OnboardingOverlay />
+      <PaywallOverlay />
     </View>
   );
 }
