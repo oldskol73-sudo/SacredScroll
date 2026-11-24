@@ -160,10 +160,10 @@ function MiniGrid({ year, month, marks, todayKey }: { year: number; month: numbe
           {week.map((cell, i) => {
             if (cell.day === 0) return <View key={i} style={styles.miniCell} />;
             const mark = cell.mark;
-            const feast = mark?.feast ?? mark?.fixedFeasts[0];
+            const feast = mark?.feast;
             // One feast ends at this date's sundown and another begins at that
             // same sundown: the day is shared, first half / second half.
-            const nextFeast = feast ? mark?.fixedFeastsBeginningAtSundown.find((f) => f !== feast) : undefined;
+            const nextFeast = feast ? mark?.feastBeginningAtSundown : null;
             // Hanukkah days that are also the weekly Sabbath: diagonal, Hanukkah
             // color above the line and Sabbath color below it.
             const hanukkahSabbath = feast === "dedication" && !!mark?.isSabbath;
@@ -186,6 +186,11 @@ function MiniGrid({ year, month, marks, todayKey }: { year: number; month: numbe
                     <View style={styles.miniSplit} pointerEvents="none">
                       <View style={{ flex: 1, backgroundColor: FEAST_COLORS[feast] }} />
                       <View style={{ flex: 1, backgroundColor: FEAST_COLORS[nextFeast] }} />
+                    </View>
+                  ) : null}
+                  {mark?.isNewMoon ? (
+                    <View style={[styles.miniMoonRingOuter, { borderColor: palette.accent }]} pointerEvents="none">
+                      <View style={styles.miniMoonRingInner} />
                     </View>
                   ) : null}
                   <AppText variant="sansBold" size={9.5} color={fg}>
@@ -267,6 +272,10 @@ const styles = StyleSheet.create({
   miniCell: { flex: 1, aspectRatio: 1.15, alignItems: "center", justifyContent: "center" },
   miniDay: { width: "82%", height: "82%", borderRadius: 7, alignItems: "center", justifyContent: "center" },
   miniSplit: { ...StyleSheet.absoluteFill, flexDirection: "row", borderRadius: 7, overflow: "hidden" },
+  // Bright ring around a new-moon day: white, with a thin accent outline so it
+  // still reads against the light themes.
+  miniMoonRingOuter: { position: "absolute", height: "100%", aspectRatio: 1, borderRadius: 999, borderWidth: 1, padding: 1 },
+  miniMoonRingInner: { flex: 1, borderRadius: 999, borderWidth: 2, borderColor: NEW_MOON_COLOR },
   miniMoonBadge: { position: "absolute", top: -2, right: -2, width: 7, height: 7, borderRadius: 3.5, backgroundColor: NEW_MOON_COLOR, borderWidth: 1 },
   legendRow: { flexDirection: "row", alignItems: "center", gap: 14, marginTop: 10, flexWrap: "wrap" },
   legendItem: { flexDirection: "row", alignItems: "center", gap: 5 },

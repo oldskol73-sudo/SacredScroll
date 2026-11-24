@@ -31,11 +31,15 @@
 //    Sabbath of Passover — the Saturday that falls within Month 1, Days 15-21
 //    (Leviticus 23:11, 15-16).
 //  - The Day of Simon is Month 2, Day 23 (1 Maccabees 13:51).
+//  - The Feast of Dedication (Hanukkah) is eight days starting Month 9, Day 25
+//    (1 Maccabees 4:59; 2 Maccabees 10:5-6). The Destruction of Nicanor is
+//    Month 12, Day 13, and Purim is Month 12, Days 14-15 (Esther 9:21;
+//    2 Maccabees 15:36). Month 12 is the 12th lunar month even in a 13-month
+//    year.
 //  - Months are labeled by number ("Month 1", "Month 2", ...) rather than
 //    the traditional Hebrew/Babylonian names (Nisan, Iyar, ...), matching
 //    how the Torah itself refers to them (e.g. Exodus 12:2).
 import { dateToJD, firstFullMoonAtOrAfter, jdToDate, marchEquinoxJD } from "./astro";
-import { fixedFeastSpans } from "./fixedFeasts";
 
 export type FeastKey =
   | "passover"
@@ -132,6 +136,11 @@ function feastFor(month: number, day: number): FeastKey | null {
     if (day === 23) return "simon";
     return null;
   }
+  if (month === 12) {
+    if (day === 13) return "nicanor";
+    if (day === 14 || day === 15) return "purim";
+    return null;
+  }
   if (month === 7) {
     if (day === 1) return "trumpets";
     if (day === 10) return "atonement";
@@ -193,14 +202,25 @@ export function buildLunarYear(anchorYear: number): LunarYear {
     throw new Error("Expected a weekly Sabbath within Month 1, Days 15-21");
   }
   const pentecostDate = addDays(sabbathDuringFeast.date, 50);
+  // The Feast of Dedication runs eight days from Month 9, Day 25 and so
+  // crosses into Month 10 — also resolved by date arithmetic.
+  const dedicationStart = months.find((m) => m.index === 9)?.days.find((d) => d.dayOfMonth === 25)?.date;
+  const dedicationEnd = dedicationStart ? addDays(dedicationStart, 7) : undefined;
   for (const month of months) {
     for (const day of month.days) {
       if (day.date.getTime() === pentecostDate.getTime()) day.feast = "pentecost";
+      if (dedicationStart && dedicationEnd && day.date >= dedicationStart && day.date <= dedicationEnd) {
+        day.feast = "dedication";
+      }
     }
   }
 
   return { anchorYear, startDate, nextYearStartDate, months };
 }
+
+/** Pairs of feasts where the second begins at the same sundown the first ends,
+ * so the date between them is drawn shared — [ending feast, beginning feast]. */
+const SHARED_SUNDOWN_HANDOFFS: [FeastKey, FeastKey][] = [["nicanor", "purim"]];
 
 export interface DayMark {
   isSabbath: boolean;
@@ -214,14 +234,10 @@ export interface DayMark {
    * moon. */
   isNewMoon: boolean;
   feast: FeastKey | null;
-  /** Dedication, Nicanor and Purim (see fixedFeasts.ts) — a list, not a single
-   * value, because their ranges can overlap (Nicanor and Purim share a day in
-   * 2027). Kept apart from `feast` so the Leviticus 23 logic is untouched. */
-  fixedFeasts: FeastKey[];
-  /** Fixed feasts whose first day begins at the sundown that ends this date —
-   * so on a date where another feast is just ending, the day is shared: the
-   * first half belongs to the ending feast, the second half to this one. */
-  fixedFeastsBeginningAtSundown: FeastKey[];
+  /** Set when the next day's feast begins at the very sundown that ends this
+   * date's feast (see SHARED_SUNDOWN_HANDOFFS) — the day is shared: the first
+   * half belongs to `feast`, the second half to this one. */
+  feastBeginningAtSundown: FeastKey | null;
 }
 
 /** `YYYY-M-D` in the device's local time zone — stable, collision-free map
@@ -244,17 +260,18 @@ export function lunarMarksForGregorianYear(gregorianYear: number): Map<string, D
           isSabbath: day.isSabbath,
           isNewMoon: day.dayOfMonth === month.days.length,
           feast: day.feast,
-          fixedFeasts: [],
-          fixedFeastsBeginningAtSundown: [],
+          feastBeginningAtSundown: null,
         });
       }
     }
   }
-  for (const span of fixedFeastSpans()) {
-    for (let date = span.startDate; date.getTime() <= span.endDate.getTime(); date = addDays(date, 1)) {
-      marks.get(dateKey(date))?.fixedFeasts.push(span.feast);
+  for (const [from, to] of SHARED_SUNDOWN_HANDOFFS) {
+    for (const [key, mark] of marks) {
+      if (mark.feast !== from) continue;
+      const [y, m, d] = key.split("-").map(Number);
+      const tomorrow = marks.get(dateKey(new Date(y, m, d + 1)));
+      if (tomorrow?.feast === to) mark.feastBeginningAtSundown = to;
     }
-    marks.get(dateKey(addDays(span.startDate, -1)))?.fixedFeastsBeginningAtSundown.push(span.feast);
   }
   return marks;
 }

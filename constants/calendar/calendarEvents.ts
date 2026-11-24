@@ -1,4 +1,3 @@
-import { fixedFeastSpans } from "./fixedFeasts";
 import { DayMark, FeastKey, lunarMarksForGregorianYear } from "./lunarYear";
 
 export type CalendarEventKind = "sabbath" | "newMoon" | "feast";
@@ -87,19 +86,6 @@ export function monthEvents(year: number, month: number): CalendarEvent[] {
     }
   }
   closeFeast(scanEnd);
-
-  // Dedication, Nicanor and Purim come straight from the hand-entered table
-  // (fixedFeasts.ts) rather than from the day-by-day scan above, so two of
-  // them can overlap without one cutting the other short.
-  for (const span of fixedFeastSpans()) {
-    events.push({
-      kind: "feast",
-      feast: span.feast,
-      startDate: span.startDate,
-      endDate: span.endDate,
-      overlapsSabbath: overlapsWeeklySabbath(span.startDate, span.endDate),
-    });
-  }
 
   const touchesMonth = (ev: CalendarEvent) =>
     ev.endDate.getTime() >= monthStart.getTime() && ev.startDate.getTime() <= monthEnd.getTime();
