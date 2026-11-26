@@ -70,7 +70,8 @@ compare by ear with the Mac's version (`~/Desktop/Narration-RealJuice/Genesis/`)
    (account devpublisher@twelvescentspub.com) and check `npx wrangler r2 bucket list` shows `twelve-scent-publishing`.
 2. Register the MCP server; recreate the voice; match the settings table; `check_health` should report `omnivoice` on CUDA.
 3. **Pilot:** `python scripts/narration/narrate_chapter.py "Genesis" 1 --profile <ID> --out <dir>` → listen; read the TIME line; note the time it prints.
-4. **Run the queue** (OT, NT, then Apocrypha; resumable; uploads each book as it finishes):
+4. **Run the queue** (Genesis first, then the rest of the OT, the NT, then the Apocrypha; resumable; uploads each book as it finishes;
+   chapters already done in this voice — e.g. the approved Genesis 1 — are skipped):
    `python scripts/narration/narrate_queue.py --profile <ID> --narrator-id twelve-scents-v1 --upload`
    To do some books first: add `--only "Psalms,Proverbs,Matthew,Mark,Luke,John"`. Progress: `~/Desktop/Narration/queue.log`
    and `<Book>.log`; flagged verses are listed at the end of each book log and in `<dir>/_qa/`. Stop = kill the python

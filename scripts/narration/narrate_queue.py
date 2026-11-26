@@ -2,7 +2,7 @@
 """Wait for the running Genesis job to finish, then narrate the remaining books in order.
 
 usage: narrate_queue.py --profile 376a6b5f --narrator-id hester-v1 [--wait-for "narrate_book.py Genesis"]
-Order: Exodus..Malachi, Matthew..Revelation, then the Apocrypha. Each book is the resumable
+Order: Genesis..Malachi, Matthew..Revelation, then the Apocrypha. Chapters already rendered with this voice are skipped. Each book is the resumable
 narrate_book.py, so stopping this (kill it and its child) and starting it again continues
 where it left off. Output: ~/Desktop/Narration/<Book>/ ; progress: ~/Desktop/Narration/queue.log
 """
@@ -22,7 +22,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 keys = list(json.load(open(nc.DATA, encoding="utf-8")).keys())
 assert keys[0] == "Genesis" and keys[38] == "Malachi" and keys[39] == "1 Esdras" and keys[54] == "Matthew", "unexpected book order"
-books = keys[1:39] + keys[54:] + keys[39:54]      # OT, NT, Apocrypha
+books = keys[:39] + keys[54:] + keys[39:54]        # OT (from Genesis), NT, Apocrypha
 if a.only:
     books = [b.strip() for b in a.only.split(",")]
     assert all(b in keys for b in books), "unknown book name in --only"
