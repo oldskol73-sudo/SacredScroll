@@ -3,6 +3,24 @@
 This is the state of the narration project, so a fresh Claude Code session (or a person) on the PC can
 continue without the original conversation. Verified on the Mac it was built on unless marked **(PC: check)**.
 
+## Quick start — the exact commands
+The scripts are all in `scripts/narration/` of this repo (`oldskol73-sudo/SacredScroll`, branch `main`):
+`narrate_chapter.py` (one chapter) · `narrate_book.py` (one book) · `narrate_queue.py` (many books, in order) · `upload_to_r2.py` (send to the server).
+Run everything from the repo's top folder, with VoiceStudio **open** (see "VoiceStudio settings to match"). Windows: use `python`; Mac: `python3`.
+
+**PC — Old Testament, then the Apocrypha**
+```
+git pull
+npx wrangler whoami                     # must show devpublisher@twelvescentspub.com (else: npx wrangler login)
+python scripts/narration/narrate_chapter.py "Genesis" 1 --profile 37d18c23     # pilot, ~2.5 min: listen to it
+python scripts/narration/narrate_queue.py --profile 37d18c23 --narrator-id twelve-scents-v1 --set ot+apocrypha --upload
+```
+**Mac — New Testament**
+```
+caffeinate -i python3 scripts/narration/narrate_queue.py --profile 039f13b8 --narrator-id twelve-scents-v1 --set nt --upload
+```
+If a run stops, run the same command again — it resumes. Progress: `~/Desktop/Narration/queue.log`. Details, settings and troubleshooting are below.
+
 ## Goal
 Narrate the whole Bible (KJV + Apocrypha: 81 books / 1,361 chapters / ~931k words / ~100 h of audio) in one
 voice, one file per chapter, with verse timings so the app can highlight and jump to verses, and get it into the
