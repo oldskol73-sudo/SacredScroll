@@ -11,14 +11,18 @@ app by uploading to the audio server. Text lives in `constants/bible/data/kjva.j
 ## The PC
 Windows PC (assumed), **NVIDIA GeForce RTX 4060 (8 GB VRAM), 64 GB RAM**.
 
-**Measured speeds (Genesis 1 with the light pauses, ~4:44 of audio, 31 verses):**
-- Mac (Apple M5): ~2.5x the audio length (3:09 for a 1:16 test; whole chapter est. ~12 min).
-- **PC: 30 min 7 s = 1,807 s = 6.4x the audio length — about 2.5x SLOWER than the Mac.** At that rate Genesis is ~24 h and the
-  whole Bible (~91 h of audio) ~3 weeks. **Do not start a long run until this is explained.** Likely causes: the voice engine is
-  running on the CPU instead of the RTX 4060, or the word-check (speech-to-text) is running slowly on the CPU.
-- First job on the PC: pull this commit, re-run the Genesis 1 pilot, and read the last two lines it prints. The `TIME` line splits
-  the render into *voice engine* + *word-check* + *other* and prints the device — it says which one is slow (the same numbers are
-  saved in `<dir>/_qa/Genesis_001.qa.json`). See "If the render is slow" below.
+**Measured speeds (light pauses):**
+- Mac (Apple M5): ~2.5–3x the audio length (3 verses = 57 s for 18 s of audio).
+- PC, VoiceStudio *Processing device* left on **Auto**: Genesis 1 took 30 min 7 s for 4:44 of audio = **6.4x** (the slow path).
+- PC after setting **Settings → Performance → Processing device = NVIDIA GPU (CUDA)** and restarting VoiceStudio: 3 verses = **11 s for
+  18 s of audio = 0.6x** (voice engine 8 s + word-check 2 s + other 2 s) — about 5x faster than the Mac. `check_health` now reports
+  `omnivoice on cuda (NVIDIA GeForce RTX 4060 Laptop GPU)`.
+- Estimate on the PC: Genesis (3.8 h of audio) ~2–2.5 h; the whole Bible (~91 h of audio) ~2–3 days. It is a **laptop** (RTX 4060 Laptop
+  GPU + Intel Arc, Core Ultra 9 185H): keep it plugged in, power mode = Best performance, sleep off, well ventilated; in Windows Graphics
+  settings set VoiceStudio/Python to High performance. The speech-to-text backend (faster-whisper large-v3, CUDA) is fast enough as set.
+- PC voice ids (profiles are per install): `Real_Juice` = `7306a5fb`; also present: `Real Juice Storyteller` = `3b63bb28`,
+  `Real Juice_v4` = `37d18c23`. **Confirm which one is the approved narrator before the long run** (the plan assumes `Real_Juice`).
+  The scripts refuse an unknown id and print the real ones, so pass `--profile 7306a5fb` (or the chosen id).
 - 8 GB of VRAM is the limit: stay on the **OmniVoice** engine and render one verse at a time (this pipeline does).
   Do not use the `indextts2` engine and do not use VoiceStudio's *Audiobook* mode (it ran the Mac out of memory).
 - Keep other GPU-heavy things (browser hardware acceleration, games, video apps) closed while rendering.
@@ -91,7 +95,7 @@ change (hath/has, ye/yea, blessed/bless are errors). Known benign flag: Genesis 
 or real voice errors before trusting a whole run; loosen `compare()` only for noise, never for real word changes.
 
 ## If the render is slow (PC)
-Work through these in order and re-run a 3-verse test after each (`--only 1-3 --retries 0 --out <tmp>`):
+(Item 1 was the cause on this PC: the device was on Auto.) Work through these in order and re-run a 3-verse test after each (`--only 1-3 --retries 0 --out <tmp>`):
 1. The first line of the run prints `engine: omnivoice on <device>`. It must name **CUDA / the RTX 4060**. If it says `cpu`, VoiceStudio
    is not using the GPU: Settings → Performance & Device → compute device → GPU/CUDA; then confirm PyTorch sees CUDA
    (`python -c "import torch; print(torch.cuda.is_available())"` inside VoiceStudio's Python environment) and that the NVIDIA driver is current.
