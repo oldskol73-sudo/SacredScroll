@@ -33,6 +33,7 @@ def main():
     voice = nc.Voice()
     nc.require_profile(voice, a.profile)
     t0 = time.time(); done_audio = 0.0; all_flagged = []
+    failed = []; streak = 0
 
     def log(s):
         print(s, flush=True)
@@ -64,7 +65,16 @@ def main():
             r = nc.narrate_chapter(a.book, ch, a.profile, out, voice, a.retries, None, log=log, narrator_id=a.narrator_id)
         except Exception as e:
             log(f"[{i:>2}/{len(chapters)}] {stem}: FAILED ({e}) — will continue; re-run to retry this chapter")
+            failed.append(stem); streak += 1
+            if streak >= 3:       # the speech engine has most likely died (out of memory): stop instead of failing every chapter
+                log(f"\nSTOPPED: {streak} chapters in a row failed. The speech engine is probably out of memory - press Flush "
+                    "in VoiceStudio (or quit and reopen it), then run the same command again; finished chapters are skipped.")
+                upload_pending()
+                if uploader[0]:
+                    uploader[0].wait()
+                sys.exit(3)
             continue
+        streak = 0
         done_audio += r["audio_s"]
         for f in r["flagged"]:
             all_flagged.append((stem, f["verse"], f["errors"]))
@@ -79,10 +89,14 @@ def main():
     log(f"flagged verses (still differ after {a.retries + 1} takes — check by ear): {len(all_flagged)}")
     for stem, v, errs in all_flagged:
         log(f"  {stem} verse {v}: {errs}")
+    if failed:
+        log(f"{len(failed)} chapters failed and were skipped: {', '.join(failed)} - run the same command again to retry them")
     os.makedirs(os.path.join(out, "_qa"), exist_ok=True)
     with open(os.path.join(out, "_qa", "summary.txt"), "w") as f:
         for stem, v, errs in all_flagged:
             f.write(f"{stem} verse {v}: {errs}\n")
+    if failed:
+        sys.exit(1)           # some chapters were skipped: the queue reports it instead of calling the book finished
 
 
 if __name__ == "__main__":

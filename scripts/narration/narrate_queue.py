@@ -58,8 +58,12 @@ for i, book in enumerate(books, 1):
     rc = subprocess.run([sys.executable, "-I", os.path.join(os.path.dirname(os.path.abspath(__file__)), "narrate_book.py"), book,
                          "--profile", a.profile, "--narrator-id", a.narrator_id] + (["--upload"] if a.upload else []),
                         stdout=open(os.path.expanduser(f"~/Desktop/Narration/{nc.book_slug(book)}.log"), "a", encoding="utf-8"), stderr=subprocess.STDOUT).returncode
-    say(f"[{i}/{len(books)}] {book}: finished (exit {rc})")
-    if a.upload and rc == 0:
+    if rc == 3:
+        say(f"[{i}/{len(books)}] {book}: STOPPED - the speech engine stopped working (out of memory?). Press Flush in VoiceStudio or "
+            "quit and reopen it, then run the same command again; finished chapters are skipped.")
+        sys.exit(3)
+    say(f"[{i}/{len(books)}] {book}: " + ("finished" if rc == 0 else f"finished with some chapters FAILED (exit {rc}) - run the command again to retry them"))
+    if a.upload and rc in (0, 1):
         up = subprocess.run([sys.executable, "-I", os.path.join(os.path.dirname(os.path.abspath(__file__)), "upload_to_r2.py"), book],
                             stdout=open(os.path.expanduser(f"~/Desktop/Narration/{nc.book_slug(book)}.log"), "a", encoding="utf-8"), stderr=subprocess.STDOUT)
         say(f"[{i}/{len(books)}] {book}: upload " + ("done" if up.returncode == 0 else f"FAILED (exit {up.returncode}) — run upload_to_r2.py later"))
