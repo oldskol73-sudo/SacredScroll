@@ -8,6 +8,18 @@ Narrate the whole Bible (KJV + Apocrypha: 81 books / 1,361 chapters / ~931k word
 voice, one file per chapter, with verse timings so the app can highlight and jump to verses, and get it into the
 app by uploading to the audio server. Text lives in `constants/bible/data/kjva.json`.
 
+## Who renders what (decided)
+The work is split across two machines, same narrator, both uploading to the same server (different book folders, no overlap):
+| Machine | Renders | Voice profile | Audio | Estimated time |
+|---|---|---|---|---|
+| **PC** (RTX 4060 laptop) | **Old Testament**, 39 books, 929 chapters (`--set ot`) | `Real Juice_v4` = `37d18c23` | ~60 h | ~30 h (about 1.2 days) |
+| **Mac** (Apple M5) | **New Testament** (27 books, 260 chapters), then the **Apocrypha** (15 books, 172 chapters) (`--set nt+apocrypha`) | `Real_Juice` = `039f13b8` | ~31 h | ~79 h (about 3.3 days) |
+
+The Mac is ~5x slower, so it finishes last. If it should finish sooner, move the Apocrypha to the PC (`--set ot` then `--set apocrypha` there;
+Mac does `--set nt` only): everything then takes ~1.9 days instead of 3.3.
+Both profiles are the same narrator (the owner confirmed `Real Juice_v4` matches the Mac's `Real_Juice`) and chapters are normalised to the same
+loudness (−18 LUFS). Listen across the seams (Malachi → Matthew, and the Apocrypha) to be sure the two machines sound alike.
+
 ## The PC
 Windows PC (assumed), **NVIDIA GeForce RTX 4060 (8 GB VRAM), 64 GB RAM**.
 
@@ -70,10 +82,10 @@ compare by ear with the Mac's version (`~/Desktop/Narration-RealJuice/Genesis/`)
    (account devpublisher@twelvescentspub.com) and check `npx wrangler r2 bucket list` shows `twelve-scent-publishing`.
 2. Register the MCP server; recreate the voice; match the settings table; `check_health` should report `omnivoice` on CUDA.
 3. **Pilot:** `python scripts/narration/narrate_chapter.py "Genesis" 1 --profile <ID> --out <dir>` → listen; read the TIME line; note the time it prints.
-4. **Run the queue** (Genesis first, then the rest of the OT, the NT, then the Apocrypha; resumable; uploads each book as it finishes;
-   chapters already done in this voice — e.g. the approved Genesis 1 — are skipped):
-   `python scripts/narration/narrate_queue.py --profile <ID> --narrator-id twelve-scents-v1 --upload`
-   To do some books first: add `--only "Psalms,Proverbs,Matthew,Mark,Luke,John"`. Progress: `~/Desktop/Narration/queue.log`
+4. **Run the queue — the PC does the Old Testament only** (Genesis first; resumable; uploads each book as it finishes; chapters already done
+   in this voice — e.g. the approved Genesis 1 — are skipped):
+   `python scripts/narration/narrate_queue.py --profile 37d18c23 --narrator-id twelve-scents-v1 --set ot --upload`
+   To do some books first: add `--only "Psalms,Proverbs,Isaiah"` (a comma-separated list, in that order). Progress: `~/Desktop/Narration/queue.log`
    and `<Book>.log`; flagged verses are listed at the end of each book log and in `<dir>/_qa/`. Stop = kill the python
    processes; run again to resume.
 5. The app needs **no update per book**: it asks the server for a chapter's JSON and falls back to the iPhone voice if it isn't
@@ -88,6 +100,12 @@ python scripts/narration/narrate_book.py   "Genesis" --profile <ID> --out <dir> 
 python scripts/narration/upload_to_r2.py   "Genesis" --src <dir>                        # upload one book (--dry-run to preview)
 ```
 There is no `caffeinate` on Windows — set the PC not to sleep while it renders. `lsof`/`pgrep` are Mac-only and are skipped on Windows.
+
+## The Mac's part (New Testament, then the Apocrypha)
+Run on the Mac (VoiceStudio open, OmniVoice engine, Mac's own profile `Real_Juice` = `039f13b8`; `wrangler` is already logged in there):
+`caffeinate -i python3 scripts/narration/narrate_queue.py --profile 039f13b8 --narrator-id twelve-scents-v1 --set nt+apocrypha --upload`
+Output goes to `~/Desktop/Narration/<Book>/` (the old "Black Ad Man" Genesis files in `~/Desktop/Narration/Genesis` are obsolete — ignore/delete).
+Progress: `~/Desktop/Narration/queue.log`. Stop with `pkill -f narrate_queue.py; pkill -f narrate_book.py`; run again to resume.
 
 ## Quality check inside the pipeline
 Each verse is transcribed back and compared with the scripture text (`compare()` in `narrate_chapter.py`); a flagged verse is
@@ -123,7 +141,7 @@ everything unlocked (paid download). `PremiumNarrationService` plays from the se
 `constants/audio/bundledNarration.ts` (currently empty). Xcode Cloud builds on push to `main`.
 
 ## Open
-- Book order beyond the default; whether to also render the Apocrypha now.
+- Rebalancing (Apocrypha to the PC) if the Mac's ~3.3 days is too long.
 - Scene sounds later (branch `scene-sounds`): sites to approve are listed in `SCENE_SOUNDS.md` on that branch.
 
 ## Prompt to paste into Claude Code on the PC
@@ -131,4 +149,4 @@ everything unlocked (paid download). `PremiumNarrationService` plays from the se
 > `scripts/narration/HANDOFF.md` in this repo first and follow its "Plan for the PC session". VoiceStudio is installed here.
 > Help me register its MCP server, recreate the `Real_Juice` voice from the files I copied
 > (`Real_Juice_reference.mp3` + `Real_Juice_reference_text.txt`), match the settings table, run the Genesis 1 pilot with the default
-> light pauses and tell me the render speed, then start the queue with `--upload` once I've approved the pilot.
+> light pauses and tell me the render speed, then start the queue for the **Old Testament only** (`--set ot --upload`, profile `37d18c23`) once I've approved the pilot. The New Testament and Apocrypha are being rendered on my Mac — do not render them here.
