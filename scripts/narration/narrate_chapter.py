@@ -17,9 +17,26 @@ import argparse, base64, difflib, json, os, re, subprocess, time, urllib.request
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DATA = os.path.join(REPO, "constants/bible/data/kjva.json")
 MCP = "http://127.0.0.1:3900/mcp/"
-PAUSE_S = 0.35          # silence between verses
+PAUSE_S = 0.8           # silence between verses (decided: "light" pauses sound right)
 NARRATOR_ID = "twelve-scents-v1"
 VERSION = "narrator_v1"
+# Silence added after punctuation inside a verse, via VoiceStudio's inline [pause Nms] markers
+# (the words themselves are never touched). "light" = clause/sentence breaks only; "full" adds commas.
+PAUSES_MS = {
+    "none": {},
+    "light": {";": 450, ":": 450, ".": 700, "?": 700, "!": 700},
+    "full": {",": 250, ";": 450, ":": 450, ".": 700, "?": 700, "!": 700},
+}
+
+
+def with_pauses(text, mode):
+    """Insert [pause Nms] after punctuation that is followed by more text in the same verse."""
+    table = PAUSES_MS[mode]
+    if not table:
+        return text
+    return re.sub(r"([,;:.?!])(\s+)(?=\S)", lambda m: f"{m.group(1)} [pause {table[m.group(1)]}ms] " if m.group(1) in table else m.group(0), text)
+
+
 # Words that sound identical, so a transcriber can only guess the spelling. Nothing else is
 # treated as equal: "hath"/"has", "ye"/"yea", "blessed"/"bless" etc. all count as errors.
 HOMOPHONES = {frozenset(p) for p in [("fowl", "foul"), ("seas", "sees"), ("sea", "see"), ("hart", "heart")]}
@@ -163,7 +180,8 @@ def wav_seconds(path):
         return w.getnframes() / w.getframerate()
 
 
-def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, log=print, narrator_id=NARRATOR_ID):
+def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, log=print, narrator_id=NARRATOR_ID,
+                    pauses="light", verse_gap=PAUSE_S):
     stem = f"{book_slug(book)}_{chapter:03d}"
     vdir = os.path.join(out, f"{stem}_verses")
     os.makedirs(vdir, exist_ok=True)
@@ -177,7 +195,7 @@ def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, lo
     # 1) one take per verse, checked against the text; regenerate flagged verses
     for v in verses:
         raw_wav = os.path.join(vdir, f"{v['n']:03d}.raw.wav")
-        spoken = v["text"]                                  # exactly as written — never altered
+        spoken = with_pauses(v["text"], pauses)             # the words are exactly as written; only silences are added
         best_errs, best_bytes = None, None
         for attempt in range(retries + 1):
             if attempt == 0 and os.path.exists(raw_wav):
@@ -214,7 +232,7 @@ def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, lo
 
     # 3) stitch with a pause, recording each verse's start/end
     silence = os.path.join(vdir, "pause.wav")
-    sh("ffmpeg", "-y", "-f", "lavfi", "-i", "anullsrc=r=24000:cl=mono", "-t", str(PAUSE_S), "-c:a", "pcm_s16le", silence)
+    sh("ffmpeg", "-y", "-f", "lavfi", "-i", "anullsrc=r=24000:cl=mono", "-t", str(verse_gap), "-c:a", "pcm_s16le", silence)
     listing = os.path.join(vdir, "concat.txt"); timings = []; cursor = 0.0
     with open(listing, "w") as f:
         for i, (v, tw) in enumerate(zip(verses, trimmed)):
@@ -223,7 +241,7 @@ def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, lo
             cursor += d
             f.write(f"file '{tw}'\n")
             if i < len(verses) - 1:
-                f.write(f"file '{silence}'\n"); cursor += PAUSE_S
+                f.write(f"file '{silence}'\n"); cursor += verse_gap
     joined = os.path.join(vdir, "chapter.wav")
     sh("ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", listing, "-c:a", "pcm_s16le", joined)
 
@@ -249,11 +267,14 @@ def main():
     ap.add_argument("--only", default=None, help="verse range like 1-5 (test)")
     ap.add_argument("--retries", type=int, default=2)
     ap.add_argument("--narrator-id", default=NARRATOR_ID)
+    ap.add_argument("--pauses", choices=list(PAUSES_MS), default="light")
+    ap.add_argument("--verse-gap", type=float, default=PAUSE_S)
     a = ap.parse_args()
     out = a.out or os.path.expanduser(f"~/Desktop/Narration/{book_slug(a.book)}")
     os.makedirs(out, exist_ok=True)
     only = tuple(int(x) for x in a.only.split("-")) if a.only else None
-    r = narrate_chapter(a.book, a.chapter, a.profile, out, Voice(), a.retries, only, log=lambda s: print(s, flush=True), narrator_id=a.narrator_id)
+    r = narrate_chapter(a.book, a.chapter, a.profile, out, Voice(), a.retries, only, log=lambda s: print(s, flush=True), narrator_id=a.narrator_id,
+                         pauses=a.pauses, verse_gap=a.verse_gap)
     print(f"DONE {r['stem']}: {r['audio_s']:.0f}s audio, {r['verses']} verses, {r['takes']} new takes, {r['seconds']:.0f}s; flagged: {r['flagged'] or 'none'}")
 
 
