@@ -39,6 +39,21 @@ def with_pauses(text, mode):
     return re.sub(r"([,;:.?!])(\s+)(?=\S)", lambda m: f"{m.group(1)} [pause {table[m.group(1)]}ms] " if m.group(1) in table else m.group(0), text)
 
 
+# Sound-alike spellings fed to the voice engine ONLY, for words it mispronounces. The verse text, the check
+# against it and the app never change - the words stay exactly as written. Keys are matched as whole words.
+# Left empty on purpose until a respelling has been listened to (the engine's reading of a respelling is not
+# predictable). Candidates reported by the owner: "falleth" (heard as "faileth", Exodus 1:10) and
+# "Pithom" (heard as "Pith om", Exodus 1:11) - e.g. PRONOUNCE = {"falleth": "fall-eth", "Pithom": "Pie-thom"}.
+PRONOUNCE = {}
+
+
+def for_voice(text):
+    """The verse as the voice engine should be given it (pronunciation respellings applied)."""
+    for word, say in PRONOUNCE.items():
+        text = re.sub(rf"\b{re.escape(word)}\b", say, text)
+    return text
+
+
 # Words that sound identical, so a transcriber can only guess the spelling. Nothing else is
 # treated as equal: "hath"/"has", "ye"/"yea", "blessed"/"bless" etc. all count as errors.
 HOMOPHONES = {frozenset(p) for p in [("fowl", "foul"), ("seas", "sees"), ("sea", "see"), ("hart", "heart")]}
@@ -254,7 +269,7 @@ def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, lo
         lo, hi = only
         verses = [v for v in verses if lo <= v["n"] <= hi]
     # What gets spoken: the opening line (take 000), then each verse exactly as written.
-    items = [{"n": v["n"], "say": with_pauses(v["text"], pauses), "check": v["text"]} for v in verses]
+    items = [{"n": v["n"], "say": with_pauses(for_voice(v["text"]), pauses), "check": v["text"]} for v in verses]
     if announce == "chapter":
         said = announcement(book, chapter)
         items.insert(0, {"n": 0, "say": said, "check": ord_norm(said)})
