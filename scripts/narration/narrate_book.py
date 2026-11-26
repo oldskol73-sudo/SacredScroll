@@ -22,10 +22,12 @@ def main():
     ap.add_argument("--retries", type=int, default=2)
     ap.add_argument("--narrator-id", default=nc.NARRATOR_ID)
     a = ap.parse_args()
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
 
     out = a.out or os.path.expanduser(f"~/Desktop/Narration/{nc.book_slug(a.book)}")
     os.makedirs(out, exist_ok=True)
-    chapters = sorted(int(c) for c in json.load(open(nc.DATA))[a.book])
+    chapters = sorted(int(c) for c in json.load(open(nc.DATA, encoding="utf-8"))[a.book])
     chapters = [c for c in chapters if c >= a.lo and (a.hi is None or c <= a.hi)]
     voice = nc.Voice()
     t0 = time.time(); done_audio = 0.0; all_flagged = []

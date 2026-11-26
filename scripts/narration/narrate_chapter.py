@@ -12,7 +12,7 @@ fetches (see constants/audio/types.ts ChapterAudioMetadata).
 usage: narrate_chapter.py "Genesis" 1 [--profile f9e18e18] [--out DIR] [--only 1-5] [--retries 2]
 Resumable: verse takes already in OUT/<stem>_verses are reused (and re-checked).
 """
-import argparse, base64, difflib, json, os, re, subprocess, time, urllib.request, wave
+import argparse, base64, difflib, json, os, re, subprocess, sys, time, urllib.request, wave
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DATA = os.path.join(REPO, "constants/bible/data/kjva.json")
@@ -171,6 +171,11 @@ def compare(want_text, heard_text):
 
 
 # ---------------------------------------------------------------- audio
+def ff_path(path):
+    """A path as ffmpeg's concat list wants it: forward slashes, quotes escaped (matters on Windows)."""
+    return path.replace("\\", "/").replace("'", "'\\''")
+
+
 def sh(*cmd):
     subprocess.run(cmd, check=True, capture_output=True)
 
@@ -185,7 +190,7 @@ def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, lo
     stem = f"{book_slug(book)}_{chapter:03d}"
     vdir = os.path.join(out, f"{stem}_verses")
     os.makedirs(vdir, exist_ok=True)
-    verses = json.load(open(DATA))[book][str(chapter)]
+    verses = json.load(open(DATA, encoding="utf-8"))[book][str(chapter)]
     if only:
         lo, hi = only
         verses = [v for v in verses if lo <= v["n"] <= hi]
@@ -239,9 +244,9 @@ def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, lo
             d = wav_seconds(tw)
             timings.append({"verse": v["n"], "start": round(cursor, 3), "end": round(cursor + d, 3)})
             cursor += d
-            f.write(f"file '{tw}'\n")
+            f.write(f"file '{ff_path(tw)}'\n")
             if i < len(verses) - 1:
-                f.write(f"file '{silence}'\n"); cursor += verse_gap
+                f.write(f"file '{ff_path(silence)}'\n"); cursor += verse_gap
     joined = os.path.join(vdir, "chapter.wav")
     sh("ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", listing, "-c:a", "pcm_s16le", joined)
 
@@ -270,6 +275,8 @@ def main():
     ap.add_argument("--pauses", choices=list(PAUSES_MS), default="light")
     ap.add_argument("--verse-gap", type=float, default=PAUSE_S)
     a = ap.parse_args()
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     out = a.out or os.path.expanduser(f"~/Desktop/Narration/{book_slug(a.book)}")
     os.makedirs(out, exist_ok=True)
     only = tuple(int(x) for x in a.only.split("-")) if a.only else None

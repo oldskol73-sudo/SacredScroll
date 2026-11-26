@@ -44,3 +44,7 @@ yarn-error.*
 app-example
 
 .env
+
+# Python bytecode
+__pycache__/
+*.pyc

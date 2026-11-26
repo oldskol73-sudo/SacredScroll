@@ -6,16 +6,18 @@ usage: upload_to_r2.py "Exodus" [--src ~/Desktop/Narration/Exodus] [--dry-run] [
 Uploads every <Book>_<NNN>.m4a + <Book>_<NNN>.json pair found in SRC (a chapter is only
 uploaded when BOTH exist) to  <bucket>/<Book_slug>/<file>, the layout the app reads
 (constants/audio/config.ts):  https://audio.twelvescentspub.com/<Book>/<Book>_<NNN>.json
-Only the book you name is touched — nothing is uploaded automatically. Needs `wrangler login`.
+Only the book you name is touched; run it by hand, or let narrate_queue.py --upload do it after each book.
+Needs `wrangler login`.
 Already-uploaded, unchanged files are skipped (tracked in SRC/_uploaded.json).
 """
-import argparse, concurrent.futures, glob, json, os, re, subprocess, sys
+import argparse, concurrent.futures, glob, json, os, re, shutil, subprocess, sys
 
 BUCKET = "twelve-scent-publishing"
 BASE_URL = "https://audio.twelvescentspub.com"
 # Short cache: a chapter that is re-rendered keeps its file name, so clients must pick up changes.
 CACHE = "public, max-age=3600"
 TYPES = {".m4a": "audio/mp4", ".json": "application/json"}
+NPX = shutil.which("npx") or "npx"       # on Windows this resolves to npx.cmd
 
 
 def book_slug(book):
@@ -24,7 +26,7 @@ def book_slug(book):
 
 def put(key, path):
     ext = os.path.splitext(path)[1]
-    r = subprocess.run(["npx", "--yes", "wrangler@latest", "r2", "object", "put", f"{BUCKET}/{key}", "--file", path,
+    r = subprocess.run([NPX, "--yes", "wrangler@latest", "r2", "object", "put", f"{BUCKET}/{key}", "--file", path,
                         "--content-type", TYPES[ext], "--cache-control", CACHE, "--remote"], capture_output=True, text=True)
     return key, r.returncode == 0, (r.stdout + r.stderr)[-300:]
 
@@ -37,6 +39,8 @@ def main():
     ap.add_argument("--force", action="store_true", help="re-upload even if unchanged")
     ap.add_argument("--workers", type=int, default=4)
     a = ap.parse_args()
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
 
     slug = book_slug(a.book)
     src = os.path.expanduser(a.src or f"~/Desktop/Narration/{slug}")
