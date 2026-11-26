@@ -196,6 +196,12 @@ def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, lo
         verses = [v for v in verses if lo <= v["n"] <= hi]
     t0 = time.time()
     flagged, takes = [], 0
+    timing = {"engine": 0.0, "check": 0.0, "audio": 0.0}      # seconds spent by VoiceStudio generating / transcribing
+    try:
+        health = voice.call("check_health", {})
+    except Exception:
+        health = {}
+    log(f"    engine: {health.get('engine')} on {health.get('device')}")
 
     # 1) one take per verse, checked against the text; regenerate flagged verses
     for v in verses:
@@ -210,13 +216,17 @@ def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, lo
                     try:
                         r = voice.call("generate_speech", {"text": spoken, "language": "English", "profile_id": profile, "format": "wav"})
                         data = base64.b64decode(r["wav_base64"]); takes += 1
+                        timing["engine"] += float(r.get("generation_time_s") or 0)
+                        timing["audio"] += float(r.get("audio_duration_s") or 0)
                         break
                     except Exception as e:
                         log(f"    verse {v['n']} generation error ({gen_try}/3): {e}")
                         if gen_try == 3:
                             raise
                         time.sleep(20 * gen_try)
-            heard = voice.call("transcribe", {"audio_base64": base64.b64encode(data).decode(), "language": "English"}).get("text", "")
+            tr = voice.call("transcribe", {"audio_base64": base64.b64encode(data).decode(), "language": "English"})
+            timing["check"] += float(tr.get("transcription_time_s") or 0)
+            heard = tr.get("text", "")
             errs = compare(v["text"], heard)
             if best_errs is None or len(errs) < len(best_errs):
                 best_errs, best_bytes = errs, data
@@ -259,9 +269,15 @@ def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, lo
     meta = {"book": book, "chapter": chapter, "audioFile": f"{stem}.m4a", "duration": round(dur, 3),
             "version": VERSION, "narratorId": narrator_id, "verses": timings}
     qa_dir = os.path.join(out, "_qa"); os.makedirs(qa_dir, exist_ok=True)
-    json.dump({"stem": stem, "flagged": flagged, "takes": takes}, open(os.path.join(qa_dir, f"{stem}.qa.json"), "w"), indent=1)
+    wall = time.time() - t0
+    json.dump({"stem": stem, "flagged": flagged, "takes": takes, "device": health.get("device"), "engine": health.get("engine"),
+               "audio_seconds": round(cursor, 1), "render_seconds": round(wall, 1),
+               "engine_seconds": round(timing["engine"], 1), "check_seconds": round(timing["check"], 1),
+               "other_seconds": round(wall - timing["engine"] - timing["check"], 1)},
+              open(os.path.join(qa_dir, f"{stem}.qa.json"), "w"), indent=1)
     json.dump(meta, open(os.path.join(out, f"{stem}.json"), "w"), indent=2)
-    return {"stem": stem, "verses": len(verses), "audio_s": cursor, "seconds": time.time() - t0, "takes": takes, "flagged": flagged}
+    return {"stem": stem, "verses": len(verses), "audio_s": cursor, "seconds": wall, "takes": takes, "flagged": flagged,
+            "engine_s": timing["engine"], "check_s": timing["check"], "device": health.get("device")}
 
 
 def main():
@@ -283,6 +299,8 @@ def main():
     r = narrate_chapter(a.book, a.chapter, a.profile, out, Voice(), a.retries, only, log=lambda s: print(s, flush=True), narrator_id=a.narrator_id,
                          pauses=a.pauses, verse_gap=a.verse_gap)
     print(f"DONE {r['stem']}: {r['audio_s']:.0f}s audio, {r['verses']} verses, {r['takes']} new takes, {r['seconds']:.0f}s; flagged: {r['flagged'] or 'none'}")
+    print(f"TIME  render {r['seconds']:.0f}s = voice engine {r['engine_s']:.0f}s + word-check {r['check_s']:.0f}s + other {r['seconds'] - r['engine_s'] - r['check_s']:.0f}s"
+          f"  |  {r['seconds'] / max(r['audio_s'], 1):.1f}x the audio length  |  device: {r['device']}")
 
 
 if __name__ == "__main__":

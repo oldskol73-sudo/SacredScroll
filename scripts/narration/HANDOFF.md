@@ -9,8 +9,16 @@ voice, one file per chapter, with verse timings so the app can highlight and jum
 app by uploading to the audio server. Text lives in `constants/bible/data/kjva.json`.
 
 ## The PC
-Windows PC (assumed), **NVIDIA GeForce RTX 4060 (8 GB VRAM), 64 GB RAM**. The Mac (Apple M5) renders about 0.9x real
-time, so ~100 h of audio is ~5 days there; the 4060 should be faster — guess 2–3 days, **measure it** on the first chapter.
+Windows PC (assumed), **NVIDIA GeForce RTX 4060 (8 GB VRAM), 64 GB RAM**.
+
+**Measured speeds (Genesis 1 with the light pauses, ~4:44 of audio, 31 verses):**
+- Mac (Apple M5): ~2.5x the audio length (3:09 for a 1:16 test; whole chapter est. ~12 min).
+- **PC: 30 min 7 s = 1,807 s = 6.4x the audio length — about 2.5x SLOWER than the Mac.** At that rate Genesis is ~24 h and the
+  whole Bible (~91 h of audio) ~3 weeks. **Do not start a long run until this is explained.** Likely causes: the voice engine is
+  running on the CPU instead of the RTX 4060, or the word-check (speech-to-text) is running slowly on the CPU.
+- First job on the PC: pull this commit, re-run the Genesis 1 pilot, and read the last two lines it prints. The `TIME` line splits
+  the render into *voice engine* + *word-check* + *other* and prints the device — it says which one is slow (the same numbers are
+  saved in `<dir>/_qa/Genesis_001.qa.json`). See "If the render is slow" below.
 - 8 GB of VRAM is the limit: stay on the **OmniVoice** engine and render one verse at a time (this pipeline does).
   Do not use the `indextts2` engine and do not use VoiceStudio's *Audiobook* mode (it ran the Mac out of memory).
 - Keep other GPU-heavy things (browser hardware acceleration, games, video apps) closed while rendering.
@@ -55,7 +63,7 @@ compare by ear with the Mac's version (`~/Desktop/Narration-RealJuice/Genesis/`)
 1. Install the tools above; `git clone` the repo (`oldskol73-sudo/SacredScroll`, branch `main`); `npx wrangler login`
    (account devpublisher@twelvescentspub.com) and check `npx wrangler r2 bucket list` shows `twelve-scent-publishing`.
 2. Register the MCP server; recreate the voice; match the settings table; `check_health` should report `omnivoice` on CUDA.
-3. **Pilot:** `python scripts/narration/narrate_chapter.py "Genesis" 1 --profile <ID> --out <dir>` → listen; note the time it prints.
+3. **Pilot:** `python scripts/narration/narrate_chapter.py "Genesis" 1 --profile <ID> --out <dir>` → listen; read the TIME line; note the time it prints.
 4. **Run the queue** (OT, NT, then Apocrypha; resumable; uploads each book as it finishes):
    `python scripts/narration/narrate_queue.py --profile <ID> --narrator-id twelve-scents-v1 --upload`
    To do some books first: add `--only "Psalms,Proverbs,Matthew,Mark,Luke,John"`. Progress: `~/Desktop/Narration/queue.log`
@@ -81,6 +89,19 @@ regenerated up to twice and the best take kept; whatever still differs is listed
 change (hath/has, ye/yea, blessed/bless are errors). Known benign flag: Genesis 1:12 ("and"→"an").
 **(PC: check)** the PC's ASR may mis-hear differently from `mlx-whisper`: after the pilot, look at whether flags are ASR noise
 or real voice errors before trusting a whole run; loosen `compare()` only for noise, never for real word changes.
+
+## If the render is slow (PC)
+Work through these in order and re-run a 3-verse test after each (`--only 1-3 --retries 0 --out <tmp>`):
+1. The first line of the run prints `engine: omnivoice on <device>`. It must name **CUDA / the RTX 4060**. If it says `cpu`, VoiceStudio
+   is not using the GPU: Settings → Performance & Device → compute device → GPU/CUDA; then confirm PyTorch sees CUDA
+   (`python -c "import torch; print(torch.cuda.is_available())"` inside VoiceStudio's Python environment) and that the NVIDIA driver is current.
+2. While a render runs, `nvidia-smi -l 1` should show high GPU utilisation and VRAM in use. Near-zero use = CPU. VRAM pinned at 8 GB with
+   low utilisation = swapping; close other GPU apps (browsers with hardware acceleration, games, video).
+3. If `voice engine` is fine but `word-check` is large: VoiceStudio's speech-to-text backend is slow on this PC (the Mac uses `mlx-whisper`;
+   a CPU Whisper model can take 10+ s per verse). Choose a faster/smaller ASR backend or GPU ASR in VoiceStudio settings.
+4. Windows: power plan = High performance; plugged in; no battery saver. Performance profile `quality` is the intended setting — only try
+   `balanced` as an experiment and compare the audio by ear.
+5. Report back: the TIME line, device, GPU utilisation, and VoiceStudio's `omnivoice.log` lines with `generation_time_s`.
 
 ## Server (Cloudflare R2)
 - Bucket `twelve-scent-publishing`; custom domain **`https://audio.twelvescentspub.com`** (zone `twelvescentspub.com`, already attached).

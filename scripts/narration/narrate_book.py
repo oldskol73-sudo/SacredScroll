@@ -50,7 +50,7 @@ def main():
         for f in r["flagged"]:
             all_flagged.append((stem, f["verse"], f["errors"]))
         log(f"[{i:>2}/{len(chapters)}] {stem}: {r['verses']} verses, {r['audio_s']/60:.1f} min audio, {r['seconds']/60:.1f} min, "
-            f"flagged {len(r['flagged'])}   | total {done_audio/3600:.2f} h audio in {(time.time()-t0)/3600:.2f} h")
+            f"flagged {len(r['flagged'])}  (engine {r['engine_s']/60:.1f} min, check {r['check_s']/60:.1f} min, {r['device']})   | total {done_audio/3600:.2f} h audio in {(time.time()-t0)/3600:.2f} h")
 
     log("\nFINISHED")
     log(f"flagged verses (still differ after {a.retries + 1} takes — check by ear): {len(all_flagged)}")
