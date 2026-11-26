@@ -2,7 +2,7 @@
 """Wait for the running Genesis job to finish, then narrate the remaining books in order.
 
 usage: narrate_queue.py --profile 376a6b5f --narrator-id hester-v1 [--wait-for "narrate_book.py Genesis"]
-Parts: --set ot (Genesis..Malachi), nt (Matthew..Revelation), apocrypha, nt+apocrypha (NT first), or all (OT, NT, Apocrypha).
+Parts: --set ot (Genesis..Malachi), nt (Matthew..Revelation), apocrypha, ot+apocrypha (OT first), nt+apocrypha (NT first), or all.
 Chapters already rendered with this voice are skipped. Each book is the resumable
 narrate_book.py, so stopping this (kill it and its child) and starting it again continues
 where it left off. Output: ~/Desktop/Narration/<Book>/ ; progress: ~/Desktop/Narration/queue.log
@@ -15,8 +15,8 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--profile", required=True)
 ap.add_argument("--narrator-id", required=True)
 ap.add_argument("--wait-for", default="none", help='text in another running job\'s command line to wait for ("none" = start now; waiting needs pgrep, i.e. macOS/Linux)')
-ap.add_argument("--set", dest="which", choices=["all", "ot", "nt", "apocrypha", "nt+apocrypha"], default="all",
-                help="which part of the Bible: ot, nt, apocrypha, nt+apocrypha (NT first), or all (OT, NT, Apocrypha)")
+ap.add_argument("--set", dest="which", choices=["all", "ot", "nt", "apocrypha", "ot+apocrypha", "nt+apocrypha"], default="all",
+                help="which part of the Bible: ot, nt, apocrypha, ot+apocrypha (OT first), nt+apocrypha (NT first), or all (OT, NT, Apocrypha)")
 ap.add_argument("--upload", action="store_true", help="after each finished book, upload it to the audio server (needs `npx wrangler login`)")
 ap.add_argument("--only", default=None, help='comma-separated books to do, in this order, e.g. "Psalms,Matthew,John"')
 a = ap.parse_args()
@@ -26,7 +26,8 @@ if hasattr(sys.stdout, "reconfigure"):
 keys = list(json.load(open(nc.DATA, encoding="utf-8")).keys())
 assert keys[0] == "Genesis" and keys[38] == "Malachi" and keys[39] == "1 Esdras" and keys[54] == "Matthew", "unexpected book order"
 OT, APOCRYPHA, NT = keys[:39], keys[39:54], keys[54:]
-books = {"all": OT + NT + APOCRYPHA, "ot": OT, "nt": NT, "apocrypha": APOCRYPHA, "nt+apocrypha": NT + APOCRYPHA}[a.which]
+books = {"all": OT + NT + APOCRYPHA, "ot": OT, "nt": NT, "apocrypha": APOCRYPHA,
+         "ot+apocrypha": OT + APOCRYPHA, "nt+apocrypha": NT + APOCRYPHA}[a.which]
 if a.only:
     books = [b.strip() for b in a.only.split(",")]
     assert all(b in keys for b in books), "unknown book name in --only"
