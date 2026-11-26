@@ -44,7 +44,7 @@ def main():
                 made_with = json.load(open(os.path.join(out, "_qa", f"{stem}.qa.json"), encoding="utf-8"))
             except Exception:
                 made_with = {}
-            if made_with.get("profile") == a.profile and made_with.get("pauses") == nc.DEFAULT_PAUSES:
+            if made_with.get("profile") == a.profile and made_with.get("pauses") == nc.DEFAULT_PAUSES and made_with.get("announce") == nc.DEFAULT_ANNOUNCE:
                 log(f"[{i:>2}/{len(chapters)}] {stem}: already done with this voice, skipping")
                 continue
             log(f"[{i:>2}/{len(chapters)}] {stem}: exists but was made with another voice/setting (or an older version) - re-rendering")

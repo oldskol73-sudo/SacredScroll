@@ -47,6 +47,11 @@ Windows PC (assumed), **NVIDIA GeForce RTX 4060 (8 GB VRAM), 64 GB RAM**.
 - **Words go to the voice exactly as written** — no respelling, no "LORD"→"Lord", no hath→has.
 - **Pauses: "light"** (script default `--pauses light`): `[pause 450ms]` after `; :`, `[pause 700ms]` after `. ? !` inside a
   verse, **0.8 s** between verses. No extra pause on commas (that version was rejected).
+- **Every chapter file opens with its book and chapter**, spoken by the narrator: "Genesis, chapter one." — the Psalms say "Psalm twenty-three.",
+  numbered books say "First Samuel, chapter one.", "Ecclesiasticus, Sirach, chapter forty-four." It is its own take (000), checked like a verse, ~1.7 s long,
+  then the usual 0.8 s gap; it is **not** a verse, so the timing file has no entry for it and verse 1 starts ~2.5 s in. `--announce none` turns it off.
+  Any chapter rendered before this change (e.g. Genesis 1 on the PC and on the server) lacks it — `narrate_book`/`narrate_queue` re-render it
+  automatically (its record has no `announce`), then upload it again.
 - **Engine: OmniVoice**, quality profile. Output per chapter: `<Book>_<NNN>.m4a` (mono AAC 64 kbps, loudness-normalised)
   + `<Book>_<NNN>.json` (verse start/end times; shape = `ChapterAudioMetadata` in `constants/audio/types.ts`).
 - Genesis 1 exists in this voice on the server but **was rendered before the pause decision** — re-render it.

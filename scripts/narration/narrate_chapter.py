@@ -18,6 +18,7 @@ REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DATA = os.path.join(REPO, "constants/bible/data/kjva.json")
 MCP = "http://127.0.0.1:3900/mcp/"
 DEFAULT_PAUSES = "light"
+DEFAULT_ANNOUNCE = "chapter"     # each chapter file opens with e.g. "Genesis, chapter one."
 PAUSE_S = 0.8           # silence between verses (decided: "light" pauses sound right)
 NARRATOR_ID = "twelve-scents-v1"
 VERSION = "narrator_v1"
@@ -172,6 +173,36 @@ def compare(want_text, heard_text):
 
 
 # ---------------------------------------------------------------- audio
+def spoken_number(n):
+    """23 -> 'twenty-three', 150 -> 'one hundred and fifty', 123 -> 'one hundred and twenty-three'."""
+    if n < 20:
+        return ONES[n]
+    if n < 100:
+        return TENS[n // 10] + (f"-{ONES[n % 10]}" if n % 10 else "")
+    rest = n % 100
+    return f"{ONES[n // 100]} hundred" + (f" and {spoken_number(rest)}" if rest else "")
+
+
+def spoken_book(book):
+    """'1 Samuel' -> 'First Samuel'; 'Ecclesiasticus (Sirach)' -> 'Ecclesiasticus, Sirach'."""
+    name = re.sub(r"^([123]) ", lambda m: {"1": "First ", "2": "Second ", "3": "Third "}[m.group(1)], book)
+    return re.sub(r"\s*\(([^)]*)\)", r", \1", name)
+
+
+def announcement(book, chapter):
+    """The line the narrator speaks before verse 1: 'Genesis, chapter one.' (the Psalms: 'Psalm twenty-three.')."""
+    if book == "Psalms":
+        return f"Psalm {spoken_number(chapter)}."
+    return f"{spoken_book(book)}, chapter {spoken_number(chapter)}."
+
+
+def ord_norm(text):
+    """First/second/third and 1/2/3 are the same thing when checking an announcement."""
+    for word, digit in (("first", "one"), ("second", "two"), ("third", "three")):
+        text = re.sub(rf"\b{word}\b", digit, text, flags=re.I)
+    return text
+
+
 def abs_path(path):
     """~, $VAR and %VAR% expanded, and made absolute (a relative path breaks ffmpeg's concat list)."""
     return os.path.abspath(os.path.expandvars(os.path.expanduser(path)))
@@ -201,14 +232,14 @@ def wav_seconds(path):
 
 
 def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, log=print, narrator_id=NARRATOR_ID,
-                    pauses=DEFAULT_PAUSES, verse_gap=PAUSE_S):
+                    pauses=DEFAULT_PAUSES, verse_gap=PAUSE_S, announce=DEFAULT_ANNOUNCE):
     out = abs_path(out)
     stem = f"{book_slug(book)}_{chapter:03d}"
     vdir = os.path.join(out, f"{stem}_verses")
     os.makedirs(vdir, exist_ok=True)
     # Verse takes are reused on a re-run, so they must come from the same voice and pause setting: if
     # either changed since they were made, throw them away rather than silently mixing voices.
-    sig = f"{profile}|{pauses}"
+    sig = f"{profile}|{pauses}|{announce}"
     sig_file = os.path.join(vdir, "render.sig")
     earlier_takes = glob.glob(os.path.join(vdir, "*.raw.wav"))
     tagged = open(sig_file, encoding="utf-8").read().strip() if os.path.exists(sig_file) else None
@@ -222,6 +253,12 @@ def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, lo
     if only:
         lo, hi = only
         verses = [v for v in verses if lo <= v["n"] <= hi]
+    # What gets spoken: the opening line (take 000), then each verse exactly as written.
+    items = [{"n": v["n"], "say": with_pauses(v["text"], pauses), "check": v["text"]} for v in verses]
+    if announce == "chapter":
+        said = announcement(book, chapter)
+        items.insert(0, {"n": 0, "say": said, "check": ord_norm(said)})
+    label = lambda v: "opening line" if v["n"] == 0 else f"verse {v['n']}"
     t0 = time.time()
     flagged, takes = [], 0
     timing = {"engine": 0.0, "check": 0.0, "audio": 0.0}      # seconds spent by VoiceStudio generating / transcribing
@@ -231,10 +268,10 @@ def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, lo
         health = {}
     log(f"    engine: {health.get('engine')} on {health.get('device')}")
 
-    # 1) one take per verse, checked against the text; regenerate flagged verses
-    for v in verses:
+    # 1) one take per item, checked against the text; regenerate flagged ones
+    for v in items:
         raw_wav = os.path.join(vdir, f"{v['n']:03d}.raw.wav")
-        spoken = with_pauses(v["text"], pauses)             # the words are exactly as written; only silences are added
+        spoken = v["say"]                                   # verse words exactly as written; only silences are added
         best_errs, best_bytes = None, None
         for attempt in range(retries + 1):
             if attempt == 0 and os.path.exists(raw_wav):
@@ -248,14 +285,14 @@ def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, lo
                         timing["audio"] += float(r.get("audio_duration_s") or 0)
                         break
                     except Exception as e:
-                        log(f"    verse {v['n']} generation error ({gen_try}/3): {e}")
+                        log(f"    {label(v)} generation error ({gen_try}/3): {e}")
                         if gen_try == 3:
                             raise
                         time.sleep(20 * gen_try)
             tr = voice.call("transcribe", {"audio_base64": base64.b64encode(data).decode(), "language": "English"})
             timing["check"] += float(tr.get("transcription_time_s") or 0)
             heard = tr.get("text", "")
-            errs = compare(v["text"], heard)
+            errs = compare(v["check"], ord_norm(heard) if v["n"] == 0 else heard)
             if best_errs is None or len(errs) < len(best_errs):
                 best_errs, best_bytes = errs, data
             if not errs:
@@ -263,12 +300,12 @@ def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, lo
         open(raw_wav, "wb").write(best_bytes)
         if best_errs:
             flagged.append({"verse": v["n"], "errors": best_errs})
-            log(f"    verse {v['n']:>2} still differs after {retries + 1} takes: {best_errs}")
+            log(f"    {label(v)} still differs after {retries + 1} takes: {best_errs}")
 
     # 2) trim silence at both ends of every take
     trimmed = []
     trim = "silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.04,areverse,silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.04,areverse"
-    for v in verses:
+    for v in items:
         raw_wav = os.path.join(vdir, f"{v['n']:03d}.raw.wav"); tw = os.path.join(vdir, f"{v['n']:03d}.wav")
         sh("ffmpeg", "-y", "-i", raw_wav, "-af", trim, "-ar", "24000", "-ac", "1", tw)
         trimmed.append(tw)
@@ -278,12 +315,13 @@ def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, lo
     sh("ffmpeg", "-y", "-f", "lavfi", "-i", "anullsrc=r=24000:cl=mono", "-t", str(verse_gap), "-c:a", "pcm_s16le", silence)
     listing = os.path.join(vdir, "concat.txt"); timings = []; cursor = 0.0
     with open(listing, "w") as f:
-        for i, (v, tw) in enumerate(zip(verses, trimmed)):
+        for i, (v, tw) in enumerate(zip(items, trimmed)):
             d = wav_seconds(tw)
-            timings.append({"verse": v["n"], "start": round(cursor, 3), "end": round(cursor + d, 3)})
+            if v["n"] > 0:                     # the opening line is audio only — it is not a verse, so it gets no timing
+                timings.append({"verse": v["n"], "start": round(cursor, 3), "end": round(cursor + d, 3)})
             cursor += d
             f.write(f"file '{ff_path(tw)}'\n")
-            if i < len(verses) - 1:
+            if i < len(items) - 1:
                 f.write(f"file '{ff_path(silence)}'\n"); cursor += verse_gap
     joined = os.path.join(vdir, "chapter.wav")
     sh("ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", listing, "-c:a", "pcm_s16le", joined)
@@ -298,7 +336,7 @@ def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, lo
             "version": VERSION, "narratorId": narrator_id, "verses": timings}
     qa_dir = os.path.join(out, "_qa"); os.makedirs(qa_dir, exist_ok=True)
     wall = time.time() - t0
-    json.dump({"stem": stem, "flagged": flagged, "takes": takes, "profile": profile, "pauses": pauses,
+    json.dump({"stem": stem, "flagged": flagged, "takes": takes, "profile": profile, "pauses": pauses, "announce": announce,
                "device": health.get("device"), "engine": health.get("engine"),
                "audio_seconds": round(cursor, 1), "render_seconds": round(wall, 1),
                "engine_seconds": round(timing["engine"], 1), "check_seconds": round(timing["check"], 1),
@@ -319,6 +357,8 @@ def main():
     ap.add_argument("--narrator-id", default=NARRATOR_ID)
     ap.add_argument("--pauses", choices=list(PAUSES_MS), default=DEFAULT_PAUSES)
     ap.add_argument("--verse-gap", type=float, default=PAUSE_S)
+    ap.add_argument("--announce", choices=["chapter", "none"], default=DEFAULT_ANNOUNCE,
+                    help="chapter = open each chapter with its book and chapter, e.g. \"Genesis, chapter one.\"")
     a = ap.parse_args()
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
@@ -328,7 +368,7 @@ def main():
     voice = Voice()
     require_profile(voice, a.profile)
     r = narrate_chapter(a.book, a.chapter, a.profile, out, voice, a.retries, only, log=lambda s: print(s, flush=True), narrator_id=a.narrator_id,
-                         pauses=a.pauses, verse_gap=a.verse_gap)
+                         pauses=a.pauses, verse_gap=a.verse_gap, announce=a.announce)
     print(f"DONE {r['stem']}: {r['audio_s']:.0f}s audio, {r['verses']} verses, {r['takes']} new takes, {r['seconds']:.0f}s; flagged: {r['flagged'] or 'none'}")
     print(f"TIME  render {r['seconds']:.0f}s = voice engine {r['engine_s']:.0f}s + word-check {r['check_s']:.0f}s + other {r['seconds'] - r['engine_s'] - r['check_s']:.0f}s"
           f"  |  {r['seconds'] / max(r['audio_s'], 1):.1f}x the audio length  |  device: {r['device']}")
