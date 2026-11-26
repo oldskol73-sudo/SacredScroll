@@ -210,8 +210,11 @@ def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, lo
     # either changed since they were made, throw them away rather than silently mixing voices.
     sig = f"{profile}|{pauses}"
     sig_file = os.path.join(vdir, "render.sig")
-    if os.path.exists(sig_file) and open(sig_file, encoding="utf-8").read().strip() != sig:
-        log("    the voice or pause setting changed since the earlier takes - discarding them and re-rendering")
+    earlier_takes = glob.glob(os.path.join(vdir, "*.raw.wav"))
+    tagged = open(sig_file, encoding="utf-8").read().strip() if os.path.exists(sig_file) else None
+    if earlier_takes and tagged != sig:
+        # Different voice/pauses — or no tag at all (made by an older version, so the voice is unknown): never reuse.
+        log("    earlier takes were made with a different voice/pause setting, or can't be identified - discarding them and re-rendering")
         for f in glob.glob(os.path.join(vdir, "*.wav")):
             os.remove(f)
     open(sig_file, "w", encoding="utf-8").write(sig)
