@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Pressable, StyleSheet } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useApp } from "@/context/AppContext";
@@ -21,11 +20,6 @@ const TITLE_KEYS: Record<string, string> = {
 // (see ReadScreen) instead of collapsing in place, so this bar's height is
 // the one constant amount of space it always reserves at the top.
 export const READER_HEADER_HEIGHT = 60;
-
-// A dark scrim matching the hero image's own brand gradient, fading out toward
-// the bottom edge so the bar reads as part of the image instead of a blur
-// artifact sitting on top of it.
-const BAR_GRAD: [string, string] = ["rgba(20,13,8,.65)", "rgba(20,13,8,.15)"];
 
 export function Header() {
   const {
@@ -51,7 +45,6 @@ export function Header() {
 
     return (
       <View style={[styles.heroBand, styles.floating, styles.glassBand, { height: barHeight }]}>
-        <LinearGradient colors={BAR_GRAD} style={StyleSheet.absoluteFill} />
         <View style={[styles.glassRow, { paddingTop: insets.top + 8 }]}>
           <View style={styles.iconGroup}>
             <IconBtn solid palette={palette} onPress={() => setReaderFontSize(nextFontSize(readerFontSize))} label="Aa" />
@@ -67,6 +60,9 @@ export function Header() {
               size={14}
               color={palette.text}
               numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.6}
+              maxFontSizeMultiplier={1.1}
               style={styles.chapterBtnText}
             >
               {displayRef(location.book, location.chapter, language)}
@@ -157,7 +153,7 @@ const styles = StyleSheet.create({
   iconGroup: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 14,
+    gap: 8,
     flexShrink: 0,
   },
   iconBtn: {

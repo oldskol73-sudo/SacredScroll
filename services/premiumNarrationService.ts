@@ -177,10 +177,15 @@ export class PremiumNarrationService {
   private verseAt(time: number): number | null {
     const verses = this.metadata?.verses;
     if (!verses?.length) return null;
+    // The verse whose start is the latest one already passed. The pauses between verses (and the spoken
+    // "Exodus, chapter three." before verse 1) fall in gaps between [start, end), so matching on the range
+    // would miss them — and used to fall through to the LAST verse, making the highlight jump to the end.
+    let current = verses[0].verse;
     for (const v of verses) {
-      if (time >= v.start && time < v.end) return v.verse;
+      if (time >= v.start) current = v.verse;
+      else break;
     }
-    return verses[verses.length - 1].verse;
+    return current;
   }
 
   private handleStatus(status: AudioStatus) {

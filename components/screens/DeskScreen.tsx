@@ -39,13 +39,6 @@ const ROD_ASPECT = 2000 / 669;
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const ROD_HEIGHT = SCREEN_WIDTH / ROD_ASPECT;
 
-function greeting(t: (s: string) => string) {
-  const h = new Date().getHours();
-  if (h < 12) return t("Good morning");
-  if (h < 18) return t("Good afternoon");
-  return t("Good evening");
-}
-
 function dateLabel(language: string) {
   const locale = language === "es" ? "es" : language === "ht" ? "ht" : undefined;
   return new Date().toLocaleDateString(locale, {
@@ -131,9 +124,6 @@ export function DeskScreen() {
         <Image source={SCROLL_ROD} style={{ width: SCREEN_WIDTH, height: ROD_HEIGHT }} resizeMode="contain" />
 
         <View style={styles.body}>
-          <AppText variant="serifBold" size={30} style={{ color: "#1A140D", lineHeight: 34 }}>
-            {greeting(t)}
-          </AppText>
           <AppText variant="sansExtraBold" size={11} color={palette.accent} style={styles.dateLine}>
             {dateLabel(language).toUpperCase()} · {displayRef(location.book, location.chapter, language)}
           </AppText>
@@ -236,7 +226,7 @@ const styles = StyleSheet.create({
   badgeWrap: { alignItems: "center", paddingTop: 8, paddingBottom: 4 },
   badge: { width: 110, height: 110, borderRadius: 20 },
   body: { paddingHorizontal: 20, paddingTop: 16 },
-  dateLine: { marginTop: 8, letterSpacing: 0.4 },
+  dateLine: { marginTop: 0, letterSpacing: 0.4 },
   trail: { position: "relative", marginTop: 22, paddingLeft: 22 },
   trailLine: { position: "absolute", left: 5, top: 7, bottom: 7, borderLeftWidth: 2, borderStyle: "dashed" },
   stop: { position: "relative", marginBottom: 16 },
