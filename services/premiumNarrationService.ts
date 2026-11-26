@@ -1,5 +1,6 @@
 import { createAudioPlayer, setAudioModeAsync, AudioPlayer, AudioStatus } from "expo-audio";
 import { AudioConfiguration } from "@/constants/audio/config";
+import { bundledNarration } from "@/constants/audio/bundledNarration";
 import {
   ChapterAudioMetadata,
   NarrationError,
@@ -79,7 +80,9 @@ export class PremiumNarrationService {
     await ensureAudioMode();
     this.setStatus("loading");
 
-    const metadata = opts.metadata ?? (await PremiumNarrationService.fetchMetadata(book, chapter));
+    // A chapter that ships inside the app plays from the bundle — no network needed.
+    const bundled = opts.localUri ? undefined : bundledNarration(book, chapter);
+    const metadata = opts.metadata ?? bundled?.metadata ?? (await PremiumNarrationService.fetchMetadata(book, chapter));
     if (!metadata) {
       this.fail("chapterAudioUnavailable", `No premium narration available for ${book} ${chapter}`);
       return;
@@ -92,8 +95,12 @@ export class PremiumNarrationService {
     this.currentVerseNum = null;
     this.rate = opts.rate ?? this.rate;
 
-    const uri = opts.localUri ?? AudioConfiguration.audioFileUrl(book, metadata.audioFile);
-    this.player = createAudioPlayer({ uri });
+    const source = opts.localUri
+      ? { uri: opts.localUri }
+      : bundled
+        ? bundled.audio
+        : { uri: AudioConfiguration.audioFileUrl(book, metadata.audioFile) };
+    this.player = createAudioPlayer(source);
     this.statusSub = this.player.addListener("playbackStatusUpdate", (status) => this.handleStatus(status));
     this.player.setPlaybackRate(this.rate);
     this.player.setActiveForLockScreen(

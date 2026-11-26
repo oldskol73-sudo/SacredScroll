@@ -12,8 +12,8 @@ export type AudioEnvironment = "development" | "production";
 const ENVIRONMENT: AudioEnvironment = __DEV__ ? "development" : "production";
 
 const AUDIO_BASE_URL: Record<AudioEnvironment, string> = {
-  development: "https://dev-audio.twelvescentspublishing.com",
-  production: "https://audio.twelvescentspublishing.com",
+  development: "https://audio.twelvescentspub.com",
+  production: "https://audio.twelvescentspub.com",
 };
 
 /** Matches the AudioBible/<Book>/<Book>_<chapter>.* layout from the production
