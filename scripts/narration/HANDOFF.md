@@ -19,7 +19,8 @@ python scripts/narration/narrate_queue.py --profile 37d18c23 --narrator-id twelv
 ```
 caffeinate -i python3 scripts/narration/narrate_queue.py --profile 039f13b8 --narrator-id twelve-scents-v1 --set nt --upload
 ```
-If a run stops, run the same command again — it resumes. Progress: `~/Desktop/Narration/queue.log`. Details, settings and troubleshooting are below.
+`--upload` sends each chapter to the server as soon as it is finished (and sweeps the whole book at the end), so a partly done book is already live.
+To pause: Ctrl+C (PC) or `pkill -f narrate_queue` (Mac). To resume: run the same command again — finished chapters are skipped. Progress: `~/Desktop/Narration/queue.log`. Details, settings and troubleshooting are below.
 
 ## Goal
 Narrate the whole Bible (KJV + Apocrypha: 81 books / 1,361 chapters / ~931k words / ~100 h of audio) in one

@@ -17,7 +17,7 @@ ap.add_argument("--narrator-id", required=True)
 ap.add_argument("--wait-for", default="none", help='text in another running job\'s command line to wait for ("none" = start now; waiting needs pgrep, i.e. macOS/Linux)')
 ap.add_argument("--set", dest="which", choices=["all", "ot", "nt", "apocrypha", "ot+apocrypha", "nt+apocrypha"], default="all",
                 help="which part of the Bible: ot, nt, apocrypha, ot+apocrypha (OT first), nt+apocrypha (NT first), or all (OT, NT, Apocrypha)")
-ap.add_argument("--upload", action="store_true", help="after each finished book, upload it to the audio server (needs `npx wrangler login`)")
+ap.add_argument("--upload", action="store_true", help="upload each chapter as it finishes (and sweep up the whole book at the end) to the audio server (needs `npx wrangler login`)")
 ap.add_argument("--only", default=None, help='comma-separated books to do, in this order, e.g. "Psalms,Matthew,John"')
 a = ap.parse_args()
 if hasattr(sys.stdout, "reconfigure"):
@@ -56,7 +56,7 @@ say("starting")
 for i, book in enumerate(books, 1):
     say(f"[{i}/{len(books)}] {book}: start")
     rc = subprocess.run([sys.executable, "-I", os.path.join(os.path.dirname(os.path.abspath(__file__)), "narrate_book.py"), book,
-                         "--profile", a.profile, "--narrator-id", a.narrator_id],
+                         "--profile", a.profile, "--narrator-id", a.narrator_id] + (["--upload"] if a.upload else []),
                         stdout=open(os.path.expanduser(f"~/Desktop/Narration/{nc.book_slug(book)}.log"), "a", encoding="utf-8"), stderr=subprocess.STDOUT).returncode
     say(f"[{i}/{len(books)}] {book}: finished (exit {rc})")
     if a.upload and rc == 0:
