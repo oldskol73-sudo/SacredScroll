@@ -1,0 +1,165 @@
+{
+  "book": "Genesis",
+  "chapter": 1,
+  "audioFile": "Genesis_001.m4a",
+  "duration": 283.8,
+  "version": "narrator_v1",
+  "narratorId": "twelve-scents-v1",
+  "verses": [
+    {
+      "verse": 1,
+      "start": 0.0,
+      "end": 3.242
+    },
+    {
+      "verse": 2,
+      "start": 4.042,
+      "end": 13.432
+    },
+    {
+      "verse": 3,
+      "start": 14.232,
+      "end": 18.157
+    },
+    {
+      "verse": 4,
+      "start": 18.957,
+      "end": 24.378
+    },
+    {
+      "verse": 5,
+      "start": 25.178,
+      "end": 32.695
+    },
+    {
+      "verse": 6,
+      "start": 33.495,
+      "end": 40.101
+    },
+    {
+      "verse": 7,
+      "start": 40.901,
+      "end": 50.774
+    },
+    {
+      "verse": 8,
+      "start": 51.574,
+      "end": 57.497
+    },
+    {
+      "verse": 9,
+      "start": 58.297,
+      "end": 66.606
+    },
+    {
+      "verse": 10,
+      "start": 67.406,
+      "end": 75.581
+    },
+    {
+      "verse": 11,
+      "start": 76.381,
+      "end": 88.14
+    },
+    {
+      "verse": 12,
+      "start": 88.94,
+      "end": 100.039
+    },
+    {
+      "verse": 13,
+      "start": 100.839,
+      "end": 103.829
+    },
+    {
+      "verse": 14,
+      "start": 104.629,
+      "end": 114.939
+    },
+    {
+      "verse": 15,
+      "start": 115.739,
+      "end": 122.63
+    },
+    {
+      "verse": 16,
+      "start": 123.43,
+      "end": 132.214
+    },
+    {
+      "verse": 17,
+      "start": 133.014,
+      "end": 137.536
+    },
+    {
+      "verse": 18,
+      "start": 138.336,
+      "end": 145.8
+    },
+    {
+      "verse": 19,
+      "start": 146.6,
+      "end": 149.804
+    },
+    {
+      "verse": 20,
+      "start": 150.604,
+      "end": 160.415
+    },
+    {
+      "verse": 21,
+      "start": 161.215,
+      "end": 173.903
+    },
+    {
+      "verse": 22,
+      "start": 174.703,
+      "end": 182.267
+    },
+    {
+      "verse": 23,
+      "start": 183.067,
+      "end": 185.883
+    },
+    {
+      "verse": 24,
+      "start": 186.683,
+      "end": 196.958
+    },
+    {
+      "verse": 25,
+      "start": 197.758,
+      "end": 208.59
+    },
+    {
+      "verse": 26,
+      "start": 209.39,
+      "end": 224.984
+    },
+    {
+      "verse": 27,
+      "start": 225.784,
+      "end": 232.491
+    },
+    {
+      "verse": 28,
+      "start": 233.291,
+      "end": 248.422
+    },
+    {
+      "verse": 29,
+      "start": 249.222,
+      "end": 261.77
+    },
+    {
+      "verse": 30,
+      "start": 262.57,
+      "end": 274.953
+    },
+    {
+      "verse": 31,
+      "start": 275.753,
+      "end": 283.79
+    }
+  ]
+}
