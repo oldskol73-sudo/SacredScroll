@@ -18,6 +18,8 @@ export function SettingsOverlay() {
     toggleNotifications,
     redLetterEnabled,
     toggleRedLetter,
+    sceneSoundsEnabled,
+    toggleSceneSounds,
     atmosphere,
     setAtmosphere,
     readerFontSize,
@@ -192,7 +194,7 @@ export function SettingsOverlay() {
                 {readerFontSize}px ›
               </AppText>
             </Pressable>
-            <View style={[styles.optionRow, { borderBottomWidth: 0 }]}>
+            <View style={[styles.optionRow, { borderBottomColor: palette.divider }]}>
               <View style={{ flex: 1, paddingRight: 12 }}>
                 <AppText size={15}>{t("Red Letter")}</AppText>
                 <AppText size={12} dim style={{ marginTop: 2 }}>
@@ -200,6 +202,15 @@ export function SettingsOverlay() {
                 </AppText>
               </View>
               <Switch value={redLetterEnabled} onChange={toggleRedLetter} />
+            </View>
+            <View style={[styles.optionRow, { borderBottomWidth: 0 }]}>
+              <View style={{ flex: 1, paddingRight: 12 }}>
+                <AppText size={15}>{t("Scene Sounds")}</AppText>
+                <AppText size={12} dim style={{ marginTop: 2 }}>
+                  {t("Soft ambient sounds under chosen scenes while the Bible is read aloud")}
+                </AppText>
+              </View>
+              <Switch value={sceneSoundsEnabled} onChange={toggleSceneSounds} />
             </View>
           </View>
 

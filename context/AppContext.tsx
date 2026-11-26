@@ -9,7 +9,9 @@ import {
   refKey,
 } from "@/hooks/useBibleStore";
 import { useNarrations } from "@/hooks/useNarrations";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useBibleNarration } from "@/hooks/useBibleNarration";
+import { useSceneSounds } from "@/hooks/useSceneSounds";
 import { ATMOSPHERES, AtmosphereKey, Palette, HighlightColorKey } from "@/constants/theme";
 import { Language, translate } from "@/constants/i18n";
 import { setBibleLanguage } from "@/constants/bible/verses";
@@ -42,6 +44,9 @@ interface AppContextValue {
   toggleNotifications: () => void;
   redLetterEnabled: boolean;
   toggleRedLetter: () => void;
+  /** The ambient scene-sound layer under chosen passages of the narration. */
+  sceneSoundsEnabled: boolean;
+  toggleSceneSounds: () => void;
   language: Language;
   setLanguage: (lang: Language) => void;
   t: (s: string) => string;
@@ -145,6 +150,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const studyWeeklyProgress = usePlanProgress(userId, "studyWeekly");
   const narrations = useNarrations(userId);
   const narration = useBibleNarration();
+
+  // Scene sounds: an optional ambient layer under chosen scenes. Kept on this phone only; on by default.
+  const [sceneSoundsEnabled, setSceneSoundsEnabled] = useState(true);
+  useEffect(() => {
+    AsyncStorage.getItem("sceneSounds")
+      .then((v) => {
+        if (v === "off") setSceneSoundsEnabled(false);
+      })
+      .catch(() => {});
+  }, []);
+  const toggleSceneSounds = useCallback(() => {
+    setSceneSoundsEnabled((on) => {
+      AsyncStorage.setItem("sceneSounds", on ? "off" : "on").catch(() => {});
+      return !on;
+    });
+  }, []);
+  useSceneSounds(narration, sceneSoundsEnabled);
 
   const [desk, setDesk] = useState(true);
   const [tab, setTab] = useState<TabKey>("today");
@@ -291,6 +313,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       toggleNotifications: settings.toggleNotifications,
       redLetterEnabled: settings.redLetterEnabled,
       toggleRedLetter: settings.toggleRedLetter,
+      sceneSoundsEnabled,
+      toggleSceneSounds,
       language,
       setLanguage: settings.setLanguage,
       t,
@@ -416,6 +440,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       isPremium,
       showPaywall,
       requirePremium,
+      sceneSoundsEnabled,
+      toggleSceneSounds,
     ]
   );
 
