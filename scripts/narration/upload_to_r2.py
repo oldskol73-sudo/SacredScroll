@@ -27,8 +27,9 @@ def book_slug(book):
 def put(key, path):
     ext = os.path.splitext(path)[1]
     r = subprocess.run([NPX, "--yes", "wrangler@latest", "r2", "object", "put", f"{BUCKET}/{key}", "--file", path,
-                        "--content-type", TYPES[ext], "--cache-control", CACHE, "--remote"], capture_output=True, text=True)
-    return key, r.returncode == 0, (r.stdout + r.stderr)[-300:]
+                        "--content-type", TYPES[ext], "--cache-control", CACHE, "--remote"], capture_output=True, text=True,
+                       encoding="utf-8", errors="replace")      # wrangler prints symbols Windows' default codec can't decode
+    return key, r.returncode == 0, ((r.stdout or "") + (r.stderr or ""))[-300:]
 
 
 def main():
@@ -69,7 +70,10 @@ def main():
     with concurrent.futures.ThreadPoolExecutor(a.workers) as ex:
         futures = {ex.submit(put, k, p): (k, p, s) for k, p, s in todo}
         for i, f in enumerate(concurrent.futures.as_completed(futures), 1):
-            key, ok, msg = f.result()
+            try:
+                key, ok, msg = f.result()
+            except Exception as e:       # one bad upload must not abort the rest of the sweep
+                key, ok, msg = futures[f][0], False, repr(e)
             if ok:
                 ledger[key] = futures[f][2]
                 json.dump(ledger, open(ledger_path, "w"), indent=1)
