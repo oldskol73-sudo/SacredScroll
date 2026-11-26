@@ -40,8 +40,14 @@ def main():
     for i, ch in enumerate(chapters, 1):
         stem = f"{nc.book_slug(a.book)}_{ch:03d}"
         if os.path.exists(os.path.join(out, f"{stem}.m4a")) and os.path.exists(os.path.join(out, f"{stem}.json")):
-            log(f"[{i:>2}/{len(chapters)}] {stem}: already done, skipping")
-            continue
+            try:
+                made_with = json.load(open(os.path.join(out, "_qa", f"{stem}.qa.json"), encoding="utf-8"))
+            except Exception:
+                made_with = {}
+            if made_with.get("profile") == a.profile and made_with.get("pauses") == nc.DEFAULT_PAUSES:
+                log(f"[{i:>2}/{len(chapters)}] {stem}: already done with this voice, skipping")
+                continue
+            log(f"[{i:>2}/{len(chapters)}] {stem}: exists but was made with another voice/setting (or an older version) - re-rendering")
         try:
             r = nc.narrate_chapter(a.book, ch, a.profile, out, voice, a.retries, None, log=log, narrator_id=a.narrator_id)
         except Exception as e:

@@ -12,11 +12,12 @@ fetches (see constants/audio/types.ts ChapterAudioMetadata).
 usage: narrate_chapter.py "Genesis" 1 [--profile f9e18e18] [--out DIR] [--only 1-5] [--retries 2]
 Resumable: verse takes already in OUT/<stem>_verses are reused (and re-checked).
 """
-import argparse, base64, difflib, json, os, re, subprocess, sys, time, urllib.request, wave
+import argparse, base64, difflib, glob, json, os, re, subprocess, sys, time, urllib.request, wave
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DATA = os.path.join(REPO, "constants/bible/data/kjva.json")
 MCP = "http://127.0.0.1:3900/mcp/"
+DEFAULT_PAUSES = "light"
 PAUSE_S = 0.8           # silence between verses (decided: "light" pauses sound right)
 NARRATOR_ID = "twelve-scents-v1"
 VERSION = "narrator_v1"
@@ -200,11 +201,20 @@ def wav_seconds(path):
 
 
 def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, log=print, narrator_id=NARRATOR_ID,
-                    pauses="light", verse_gap=PAUSE_S):
+                    pauses=DEFAULT_PAUSES, verse_gap=PAUSE_S):
     out = abs_path(out)
     stem = f"{book_slug(book)}_{chapter:03d}"
     vdir = os.path.join(out, f"{stem}_verses")
     os.makedirs(vdir, exist_ok=True)
+    # Verse takes are reused on a re-run, so they must come from the same voice and pause setting: if
+    # either changed since they were made, throw them away rather than silently mixing voices.
+    sig = f"{profile}|{pauses}"
+    sig_file = os.path.join(vdir, "render.sig")
+    if os.path.exists(sig_file) and open(sig_file, encoding="utf-8").read().strip() != sig:
+        log("    the voice or pause setting changed since the earlier takes - discarding them and re-rendering")
+        for f in glob.glob(os.path.join(vdir, "*.wav")):
+            os.remove(f)
+    open(sig_file, "w", encoding="utf-8").write(sig)
     verses = json.load(open(DATA, encoding="utf-8"))[book][str(chapter)]
     if only:
         lo, hi = only
@@ -285,7 +295,8 @@ def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, lo
             "version": VERSION, "narratorId": narrator_id, "verses": timings}
     qa_dir = os.path.join(out, "_qa"); os.makedirs(qa_dir, exist_ok=True)
     wall = time.time() - t0
-    json.dump({"stem": stem, "flagged": flagged, "takes": takes, "device": health.get("device"), "engine": health.get("engine"),
+    json.dump({"stem": stem, "flagged": flagged, "takes": takes, "profile": profile, "pauses": pauses,
+               "device": health.get("device"), "engine": health.get("engine"),
                "audio_seconds": round(cursor, 1), "render_seconds": round(wall, 1),
                "engine_seconds": round(timing["engine"], 1), "check_seconds": round(timing["check"], 1),
                "other_seconds": round(wall - timing["engine"] - timing["check"], 1)},
@@ -303,7 +314,7 @@ def main():
     ap.add_argument("--only", default=None, help="verse range like 1-5 (test)")
     ap.add_argument("--retries", type=int, default=2)
     ap.add_argument("--narrator-id", default=NARRATOR_ID)
-    ap.add_argument("--pauses", choices=list(PAUSES_MS), default="light")
+    ap.add_argument("--pauses", choices=list(PAUSES_MS), default=DEFAULT_PAUSES)
     ap.add_argument("--verse-gap", type=float, default=PAUSE_S)
     a = ap.parse_args()
     if hasattr(sys.stdout, "reconfigure"):

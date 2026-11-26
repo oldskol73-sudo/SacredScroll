@@ -17,19 +17,21 @@ Windows PC (assumed), **NVIDIA GeForce RTX 4060 (8 GB VRAM), 64 GB RAM**.
 - PC after setting **Settings → Performance → Processing device = NVIDIA GPU (CUDA)** and restarting VoiceStudio: 3 verses = **11 s for
   18 s of audio = 0.6x** (voice engine 8 s + word-check 2 s + other 2 s) — about 5x faster than the Mac. `check_health` now reports
   `omnivoice on cuda (NVIDIA GeForce RTX 4060 Laptop GPU)`.
-- Estimate on the PC: Genesis (3.8 h of audio) ~2–2.5 h; the whole Bible (~91 h of audio) ~2–3 days. It is a **laptop** (RTX 4060 Laptop
+- Full Genesis 1 on the PC (CUDA): 283 s of audio in 129 s = **0.5x** (voice engine 86 s + word-check 33 s + other 10 s).
+- Estimate on the PC: Genesis (3.8 h of audio) ~2 h; the whole Bible (~91 h of audio) ~2 days. It is a **laptop** (RTX 4060 Laptop
   GPU + Intel Arc, Core Ultra 9 185H): keep it plugged in, power mode = Best performance, sleep off, well ventilated; in Windows Graphics
   settings set VoiceStudio/Python to High performance. The speech-to-text backend (faster-whisper large-v3, CUDA) is fast enough as set.
-- PC voice ids (profiles are per install): `Real_Juice` = `7306a5fb`; also present: `Real Juice Storyteller` = `3b63bb28`,
-  `Real Juice_v4` = `37d18c23`. **Confirm which one is the approved narrator before the long run** (the plan assumes `Real_Juice`).
-  The scripts refuse an unknown id and print the real ones, so pass `--profile 7306a5fb` (or the chosen id).
+- PC voice ids (profiles are per install): **`Real Juice_v4` = `37d18c23` is the approved narrator on the PC** — the owner confirmed it matches
+  the Mac's `Real_Juice`. Use `--profile 37d18c23`. Do **not** use plain `Real_Juice` (`7306a5fb`) or `Real Juice Storyteller` (`3b63bb28`).
+  The scripts refuse an unknown id and print the real ones. Takes are tagged with the voice + pause setting (`render.sig`, and the chapter's
+  `_qa/*.qa.json`); changing either discards earlier takes, and `narrate_book` re-renders any chapter made with another voice.
 - 8 GB of VRAM is the limit: stay on the **OmniVoice** engine and render one verse at a time (this pipeline does).
   Do not use the `indextts2` engine and do not use VoiceStudio's *Audiobook* mode (it ran the Mac out of memory).
 - Keep other GPU-heavy things (browser hardware acceleration, games, video apps) closed while rendering.
 - Needs: Python 3, **ffmpeg + ffprobe on PATH**, Node.js (for `npx wrangler`), Claude Code, git.
 
 ## Decisions already made (do not re-litigate)
-- **Voice: `Real_Juice`** (own-voice consent recorded in VoiceStudio). *Not* "Black Ad Man", *not* "Hester".
+- **Voice: `Real_Juice`** on the Mac = **`Real Juice_v4`** (`37d18c23`) on the PC (own-voice consent recorded in VoiceStudio). *Not* "Black Ad Man", *not* "Hester".
 - **Words go to the voice exactly as written** — no respelling, no "LORD"→"Lord", no hath→has.
 - **Pauses: "light"** (script default `--pauses light`): `[pause 450ms]` after `; :`, `[pause 700ms]` after `. ? !` inside a
   verse, **0.8 s** between verses. No extra pause on commas (that version was rejected).
