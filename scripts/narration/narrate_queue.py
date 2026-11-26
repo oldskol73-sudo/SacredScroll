@@ -34,6 +34,7 @@ def say(s):
     log.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')}  {s}\n"); log.flush()
 
 
+nc.require_profile(nc.Voice(), a.profile)
 say(f"queue ready: {len(books)} books after '{a.wait_for}', voice {a.profile} ({a.narrator_id})")
 def other_job_running():
     if a.wait_for.strip().lower() in ("", "none"):

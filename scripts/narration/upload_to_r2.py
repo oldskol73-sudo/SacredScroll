@@ -43,7 +43,7 @@ def main():
         sys.stdout.reconfigure(encoding="utf-8")
 
     slug = book_slug(a.book)
-    src = os.path.expanduser(a.src or f"~/Desktop/Narration/{slug}")
+    src = os.path.abspath(os.path.expandvars(os.path.expanduser(a.src or f"~/Desktop/Narration/{slug}")))
     ledger_path = os.path.join(src, "_uploaded.json")
     ledger = json.load(open(ledger_path)) if os.path.exists(ledger_path) else {}
 

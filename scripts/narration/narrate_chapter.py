@@ -171,6 +171,20 @@ def compare(want_text, heard_text):
 
 
 # ---------------------------------------------------------------- audio
+def abs_path(path):
+    """~, $VAR and %VAR% expanded, and made absolute (a relative path breaks ffmpeg's concat list)."""
+    return os.path.abspath(os.path.expandvars(os.path.expanduser(path)))
+
+
+def require_profile(voice, profile):
+    """Stop early if the voice id isn't in VoiceStudio — otherwise it quietly renders in some other voice."""
+    r = voice.call("list_voices", {})
+    profiles = r if isinstance(r, list) else (r.get("voices") or r.get("profiles") or [])
+    if not any(p.get("id") == profile for p in profiles):
+        listing = "\n".join(f"    {p.get('id')}  {p.get('name')}" for p in profiles)
+        raise SystemExit(f"Voice profile '{profile}' was not found in VoiceStudio. Use the id of Real_Juice from this list:\n{listing}")
+
+
 def ff_path(path):
     """A path as ffmpeg's concat list wants it: forward slashes, quotes escaped (matters on Windows)."""
     return path.replace("\\", "/").replace("'", "'\\''")
@@ -187,6 +201,7 @@ def wav_seconds(path):
 
 def narrate_chapter(book, chapter, profile, out, voice, retries=2, only=None, log=print, narrator_id=NARRATOR_ID,
                     pauses="light", verse_gap=PAUSE_S):
+    out = abs_path(out)
     stem = f"{book_slug(book)}_{chapter:03d}"
     vdir = os.path.join(out, f"{stem}_verses")
     os.makedirs(vdir, exist_ok=True)
@@ -293,10 +308,12 @@ def main():
     a = ap.parse_args()
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
-    out = a.out or os.path.expanduser(f"~/Desktop/Narration/{book_slug(a.book)}")
+    out = abs_path(a.out or f"~/Desktop/Narration/{book_slug(a.book)}")
     os.makedirs(out, exist_ok=True)
     only = tuple(int(x) for x in a.only.split("-")) if a.only else None
-    r = narrate_chapter(a.book, a.chapter, a.profile, out, Voice(), a.retries, only, log=lambda s: print(s, flush=True), narrator_id=a.narrator_id,
+    voice = Voice()
+    require_profile(voice, a.profile)
+    r = narrate_chapter(a.book, a.chapter, a.profile, out, voice, a.retries, only, log=lambda s: print(s, flush=True), narrator_id=a.narrator_id,
                          pauses=a.pauses, verse_gap=a.verse_gap)
     print(f"DONE {r['stem']}: {r['audio_s']:.0f}s audio, {r['verses']} verses, {r['takes']} new takes, {r['seconds']:.0f}s; flagged: {r['flagged'] or 'none'}")
     print(f"TIME  render {r['seconds']:.0f}s = voice engine {r['engine_s']:.0f}s + word-check {r['check_s']:.0f}s + other {r['seconds'] - r['engine_s'] - r['check_s']:.0f}s"
